@@ -49,14 +49,12 @@
     .brand-sub { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; }
     @keyframes rgbShift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-    /* ПЕРЕСТАВЛЕННЫЕ ЭЛЕМЕНТЫ ШАПКИ */
     .header-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
     .controls-row { display: flex; align-items: center; gap: 12px; }
     @media (max-width: 768px) { 
       .header-controls { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; } 
     }
     
-    /* Кнопка уведомлений */
     .btn-notify {
       padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; border: 1px solid transparent;
       display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s; white-space: nowrap;
@@ -104,6 +102,8 @@
     .btn-send:disabled { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
     .btn-delete { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
     .btn-delete:hover { background: var(--err); color: #fff; }
+    .btn-sign { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+    .btn-sign:hover { background: var(--ok); color: #fff; }
     .btn-export { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); font-size: 0.8rem; padding: 8px 12px; border-radius: 8px; }
     .btn-export:hover { background: var(--ok); color: #fff; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -127,6 +127,7 @@
     .badge-pending { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
     .badge-confirmed { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
     .badge-waiting-confirm { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+    .badge-signed { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; }
 
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
@@ -164,13 +165,25 @@
       100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
     }
 
-    #cancel-screen, #confirm-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+    #cancel-screen, #confirm-screen, #sign-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
     .cancel-content { max-width: 400px; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .cancel-logo { max-width: 140px; width: 100%; height: auto; margin-bottom: 25px; border-radius: 12px; }
     .cancel-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--err); }
     .confirm-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
     .cancel-text { font-size: 1.1rem; color: var(--text-muted); }
+
+    /* Стили для экрана подписи */
+    .sign-content { max-width: 600px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); text-align: left; position: relative; margin: auto; }
+    .sign-title { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 20px; text-align: center; }
+    .agreement-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; height: 150px; overflow-y: auto; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid var(--border); }
+    .agreement-text p { margin-bottom: 10px; }
+    .canvas-container { background: #fff; border-radius: 8px; overflow: hidden; margin-bottom: 15px; border: 2px dashed #cbd5e1; touch-action: none; }
+    canvas { display: block; width: 100%; height: 200px; cursor: crosshair; }
+    .sign-controls { display: flex; gap: 10px; }
+    .btn-clear { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); padding: 10px 15px; border-radius: 8px; font-weight: 600; }
+    .btn-sign-submit { background: var(--ok); color: #fff; border: 1px solid var(--ok); padding: 10px 15px; border-radius: 8px; font-weight: 600; flex: 1; }
+    .btn-sign-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
     #snow-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; display: none; }
     body.ny-mode #snow-container { display: block; }
@@ -190,6 +203,7 @@
   <div class="garland" id="garland"></div>
   <div id="snow-container"></div>
 
+  <!-- ЭКРАНЫ ДЛЯ КЛИЕНТА -->
   <div id="cancel-screen">
     <div class="cancel-content">
       <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
@@ -206,8 +220,28 @@
     </div>
   </div>
 
+  <div id="sign-screen">
+    <div class="sign-content" id="sign-content">
+      <div class="sign-title">Акт выполненных работ</div>
+      <div class="agreement-text" id="agreement-text">
+        <!-- Сюда подставится текст -->
+      </div>
+      
+      <div style="margin-bottom: 10px; font-weight: 600; color: var(--text-muted); font-size: 0.9rem;">Поставьте подпись пальцем или мышкой:</div>
+      <div class="canvas-container">
+        <canvas id="signature-canvas"></canvas>
+      </div>
+      
+      <div class="sign-controls">
+        <button class="btn-clear" onclick="clearCanvas()">Очистить</button>
+        <button class="btn-sign-submit" id="btn-submit-sign" onclick="saveSignature()" disabled>Подписать и продолжить</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
+  <!-- ОСНОВНОЙ САЙТ -->
   <div class="app">
     <div class="header">
       <h1>
@@ -218,7 +252,6 @@
         </div>
       </h1>
       
-      <!-- НОВОЕ РАСПОЛОЖЕНИЕ ЭЛЕМЕНТОВ -->
       <div class="header-controls">
         <div class="controls-row">
           <label class="toggle-container">
@@ -307,7 +340,13 @@
     const LOGO_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png';
     const AVITO_REVIEW_URL = 'https://www.avito.ru/brands/12365dad543a9fb840bc9e5de473b755';
 
+    // ВАШИ РЕКВИЗИТЫ ДЛЯ ОПЛАТЫ
+    const PAYMENT_PHONE = '+79774770587'; 
+    const PAYMENT_BANK = 'OZON bank';
+    const PAYMENT_NAME = 'Андрей Ш';
+
     let currentTab = 'active';
+    let currentSignId = null;
 
     /* ЛОГИ */
     let logLines = [];
@@ -332,42 +371,24 @@
     /* УВЕДОМЛЕНИЯ */
     function checkNotificationStatus() {
       const btn = document.getElementById('notify-btn');
-      if (!("Notification" in window)) {
-        btn.className = 'btn-notify btn-err';
-        btn.innerHTML = '🚫 Нет поддержки';
-        return;
-      }
-
-      if (Notification.permission === "granted") {
-        btn.className = 'btn-notify btn-ok';
-        btn.innerHTML = '🔔 Уведомления вкл';
-      } else if (Notification.permission === "denied") {
-        btn.className = 'btn-notify btn-err';
-        btn.innerHTML = '🚫 Заблокированы';
-      } else {
-        btn.className = 'btn-notify btn-warn';
-        btn.innerHTML = '🔔 Включить уведомления';
-      }
+      if (!("Notification" in window)) { btn.className = 'btn-notify btn-err'; btn.innerHTML = '🚫 Нет поддержки'; return; }
+      if (Notification.permission === "granted") { btn.className = 'btn-notify btn-ok'; btn.innerHTML = '🔔 Уведомления вкл'; }
+      else if (Notification.permission === "denied") { btn.className = 'btn-notify btn-err'; btn.innerHTML = '🚫 Заблокированы'; }
+      else { btn.className = 'btn-notify btn-warn'; btn.innerHTML = '🔔 Включить уведомления'; }
     }
 
     async function requestNotifPermission() {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-
-      if (isIOS && !isStandalone) {
-        alert('На iPhone уведомления работают ТОЛЬКО если добавить сайт на экран "Домой".\n\n1. Нажмите кнопку "Поделиться" (квадрат со стрелкой вверх) в Safari.\n2. Выберите "На экран Домой".\n3. Откройте сайт с иконки на рабочем столе и нажмите эту кнопку там.');
-        return;
-      }
-
-      if (!("Notification" in window)) { showToast('Браузер не поддерживает', 'error'); return; }
+      if (isIOS && !isStandalone) { alert('На iPhone добавьте сайт на экран "Домой" для работы уведомлений.'); return; }
+      if (!("Notification" in window)) { showToast('Нет поддержки', 'error'); return; }
       if (Notification.permission === "granted") { showToast('Уже включены!', 'success'); return; }
-      if (Notification.permission === "denied") { alert('Вы заблокировали уведомления. Нажмите на замочек 🔒 рядом с адресом сайта и разрешите их.'); return; }
-
+      if (Notification.permission === "denied") { alert('Вы заблокировали уведомления. Сбросьте в настройках браузера.'); return; }
       try {
         const permission = await Notification.requestPermission();
         if (permission === "granted") {
           showToast('Уведомления включены!');
-          new Notification("VAG FEATURE", { body: "Теперь вы будете получать уведомления.", icon: LOGO_URL });
+          new Notification("VAG FEATURE", { body: "Вы будете получать уведомления.", icon: LOGO_URL });
         }
         checkNotificationStatus();
       } catch (e) { showToast('Ошибка', 'error'); }
@@ -403,8 +424,8 @@
       return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`;
     }
 
-    /* ШАБЛОН ПИСЬМА */
-    function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false }) {
+    /* ШАБЛОНЫ ПИСЕМ */
+    function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false, isSignBtn = false }) {
       const mainText = introText || 'Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:';
       let calendarLink = getICSLink('Диагностика', date, time, address, car);
 
@@ -424,74 +445,34 @@
             
             <div style="background: #f8fafc; border-radius: 12px; padding: 20px 25px; margin: 25px 0; border: 1px solid #e2e8f0;">
               <table style="width: 100%; border-collapse: collapse;">
-                ${car ? `
-                <tr>
-                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">🚘</td>
-                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Автомобиль</span> <b style="font-size: 16px; color: ${color};">${car}</b></td>
-                </tr>` : ''}
-                ${price ? `
-                <tr>
-                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">💰</td>
-                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Сумма работы</span> <b style="color: #10b981; font-size: 16px;">${price}</b></td>
-                </tr>` : ''}
-                <tr>
-                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">📅</td>
-                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Дата</span> <b>${date}</b></td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">⏰</td>
-                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Время</span> <b>${time}</b></td>
-                </tr>
-                ${address ? `
-                <tr>
-                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">📍</td>
-                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Адрес</span> <b>${address}</b></td>
-                </tr>` : ''}
+                ${car ? `<tr><td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">🚘</td><td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Автомобиль</span> <b style="font-size: 16px; color: ${color};">${car}</b></td></tr>` : ''}
+                ${price ? `<tr><td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">💰</td><td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Сумма работы</span> <b style="color: #10b981; font-size: 16px;">${price}</b></td></tr>` : ''}
+                <tr><td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">📅</td><td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Дата</span> <b>${date}</b></td></tr>
+                <tr><td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">⏰</td><td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Время</span> <b>${time}</b></td></tr>
+                ${address ? `<tr><td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">📍</td><td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Адрес</span> <b>${address}</b></td></tr>` : ''}
               </table>
             </div>
 
-            ${calendarLink ? `
-            <div style="text-align: center; margin-bottom: 25px;">
-              <a href="${calendarLink}" download="VAG_FEATURE_Diagnostika.ics" style="background: #f1f5f9; color: #3b82f6; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #cbd5e1; display: inline-block;">📅 Добавить в календарь</a>
-            </div>
-            ` : ''}
+            ${calendarLink ? `<div style="text-align: center; margin-bottom: 25px;"><a href="${calendarLink}" download="VAG_FEATURE_Diagnostika.ics" style="background: #f1f5f9; color: #3b82f6; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #cbd5e1; display: inline-block;">📅 Добавить в календарь</a></div>` : ''}
 
             ${!isMaster ? `
             <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 25px;">
               <p style="margin: 0 0 12px 0; font-size: 15px; color: #92400e; font-weight: 600;">💡 Рекомендация от мастеров</p>
-              <p style="margin: 0 0 10px 0; font-size: 14px; color: #78350f;">
-                Если у вас <b>выездная диагностика</b>, пожалуйста, прогрейте автомобиль до рабочей температуры.
-              </p>
-              <p style="margin: 0; font-size: 13px; color: #92400e; font-style: italic;">
-                * Исключение: если проблема проявляется только на холодном двигателе, прогрев не требуется.
-              </p>
+              <p style="margin: 0 0 10px 0; font-size: 14px; color: #78350f;">Если у вас <b>выездная диагностика</b>, пожалуйста, прогрейте автомобиль до рабочей температуры.</p>
+              <p style="margin: 0; font-size: 13px; color: #92400e; font-style: italic;">* Исключение: если проблема проявляется только на холодном двигателе, прогрев не требуется.</p>
             </div>
 
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
-              <p style="margin: 0; font-size: 14px; color: #166534;">
-                Если ваши планы изменились, свяжитесь с нами:<br>
-                <a href="tel:+79774770587" style="color: #15803d; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; margin-top: 5px;">+7 (977) 477-05-87 (Андрей)</a>
-              </p>
+              <p style="margin: 0; font-size: 14px; color: #166534;">Если ваши планы изменились, свяжитесь с нами:<br><a href="tel:+79774770587" style="color: #15803d; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; margin-top: 5px;">+7 (977) 477-05-87 (Андрей)</a></p>
             </div>
 
-            ${(isCancelBtn || isConfirmBtn) ? `
+            ${(isCancelBtn || isConfirmBtn || isSignBtn) ? `
               <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e2e8f0;">
-                ${isConfirmBtn ? `<p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Пожалуйста, подтвердите ваш визит или отмените его, если планы изменились:</p>` : ''}
+                ${isConfirmBtn ? `<p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Пожалуйста, подтвердите ваш визит или отмените его:</p>` : ''}
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
-                  ${isConfirmBtn ? `
-                  <tr>
-                    <td align="center" style="padding-bottom: 12px;">
-                      <a href="${SITE_URL}?confirm=${id}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">✅ Подтвердить визит</a>
-                    </td>
-                  </tr>
-                  ` : ''}
-                  ${isCancelBtn ? `
-                  <tr>
-                    <td align="center">
-                      <a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">❌ Отменить запись</a>
-                    </td>
-                  </tr>
-                  ` : ''}
+                  ${isSignBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?sign=${id}" style="background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);">📝 Ознакомиться и подписать акт</a></td></tr>` : ''}
+                  ${isConfirmBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?confirm=${id}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">✅ Подтвердить визит</a></td></tr>` : ''}
+                  ${isCancelBtn ? `<tr><td align="center"><a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">❌ Отменить запись</a></td></tr>` : ''}
                 </table>
               </div>
             ` : ''}
@@ -499,39 +480,48 @@
           </div>
 
           <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-            Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.<br>
-            © 2026 VAG FEATURE
+            Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.<br>© 2026 VAG FEATURE
           </div>
         </div>
       </div>`;
     }
 
-    /* ШАБЛОН ПИСЬМА С ПРОСЬБОЙ ОСТАВИТЬ ОТЗЫВ */
-    function getReviewTemplate({ name }) {
+    function getWarrantyTemplate({ name, car, price, date, time, address }) {
       return `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
-        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
-          <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid #f59e0b;">
-            <img src="${LOGO_URL}" alt="VAG FEATURE" style="max-width: 120px; height: auto; margin-bottom: 15px; border-radius: 8px; display: inline-block;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px;">VAG FEATURE</h1>
-            <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Оцените нашу работу</p>
+      <div style="font-family: Arial, sans-serif; background: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid #10b981;">
+          <div style="background: #10b981; padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">СЕРТИФИКАТ ГАРАНТИИ</h1>
+            <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 16px;">Действует 7 дней с момента подписания</p>
           </div>
           
-          <div style="padding: 40px 30px; color: #334155; text-align: center;">
-            <p style="font-size: 18px; margin-top: 0; font-weight: 600; color: #0f172a;">Здравствуйте, ${name}!</p>
-            <p style="font-size: 15px; color: #475569; margin-bottom: 25px;">
-              Надеемся, что диагностика прошла успешно и вы остались довольны результатом. 
-              Нам очень важно ваше мнение, чтобы становиться еще лучше!
-            </p>
-            <p style="font-size: 15px; color: #475569; margin-bottom: 30px;">
-              Пожалуйста, уделите минуту и оставьте отзыв о нашей работе на Авито. Это сильно помогает нам развиваться.
-            </p>
+          <div style="padding: 40px 30px; color: #334155;">
+            <p style="font-size: 18px; margin-top: 0; font-weight: bold;">Уважаемый(ая) ${name},</p>
+            <p style="font-size: 16px;">Благодарим вас за выбор <b>VAG FEATURE</b>. Настоящий сертификат подтверждает, что работы по вашему автомобилю выполнены качественно и в полном объеме.</p>
+            
+            <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0; color: #64748b;">Автомобиль:</td><td style="padding: 8px 0; font-weight: bold;">${car}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b;">Дата визита:</td><td style="padding: 8px 0; font-weight: bold;">${date} в ${time}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b;">Сумма работ:</td><td style="padding: 8px 0; font-weight: bold; color: #10b981; font-size: 18px;">${price}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b;">Адрес:</td><td style="padding: 8px 0; font-weight: bold;">${address || 'Выездная диагностика'}</td></tr>
+              </table>
+            </div>
 
-            <a href="${AVITO_REVIEW_URL}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); margin-bottom: 20px;">⭐ Оставить отзыв на Авито</a>
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px; color: #92400e;">
+                <b>Условия гарантии:</b> Если в течение 7 дней с момента подписания акта вы обнаружите недостатки выполненных работ, мы обязуемся устранить их бесплатно.
+              </p>
+            </div>
+
+            <p style="font-size: 14px; color: #64748b; margin-top: 30px; text-align: center;">
+              <i>Вы можете сохранить это письмо как PDF-файл или сделать скриншот для подтверждения гарантии.</i>
+            </p>
           </div>
 
-          <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-            Спасибо, что выбираете нас!<br>© 2026 VAG FEATURE
+          <div style="background: #0f172a; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+            © 2026 VAG FEATURE. Все права защищены.<br>
+            <a href="tel:+79774770587" style="color: #10b981; text-decoration: none; font-weight: bold; margin-top: 5px; display: inline-block;">+7 (977) 477-05-87 (Андрей)</a>
           </div>
         </div>
       </div>`;
@@ -594,7 +584,9 @@
                 : `<span class="badge badge-pending">3ч: ${new Date(it.date+'T'+it.time) - 10800000 <= now ? 'готово' : 'ожидание'}</span>`;
 
               let confirmBadge = '';
-              if (it.is_confirmed) {
+              if (it.is_signed) {
+                confirmBadge = '<span class="badge badge-signed">📝 Подписано</span>';
+              } else if (it.is_confirmed) {
                 confirmBadge = '<span class="badge badge-confirmed">✅ Подтверждено</span>';
               } else if (it.manual_reminder_sent) {
                 confirmBadge = '<span class="badge badge-waiting-confirm">⏳ Ожидает подтверждения</span>';
@@ -628,6 +620,7 @@
                   <td data-label="Действия">
                     <div class="actions">
                       ${currentTab === 'active' ? `
+                        ${!it.is_signed ? `<button class="btn-icon btn-sign" onclick="sendSignRequest('${it.id}')" title="Отправить акт на подпись">📝 Акт</button>` : ''}
                         <button class="btn-icon btn-send" id="btn-remind-${it.id}" onclick="sendManualReminder('${it.id}', this)" ${isLocked ? 'disabled' : ''}>
                           ${isLocked ? '⏳ Ждите...' : '✉️ Напомнить'}
                         </button>
@@ -673,12 +666,10 @@
     async function exportToCSV() {
       const items = await loadAll();
       if (!items.length) { showToast('Нет данных', 'error'); return; }
-      
-      let csv = 'Дата;Время;Клиент;Email;Авто;Сумма;Адрес;Заметки;Подтверждено\n';
+      let csv = 'Дата;Время;Клиент;Email;Авто;Сумма;Адрес;Заметки;Подтверждено;Подписано\n';
       items.forEach(it => {
-        csv += `${formatDateRu(it.date)};${it.time};${it.name};${it.email};${it.car};${it.price || '-'};${it.address || '-'};${it.notes || '-'};${it.is_confirmed ? 'Да' : 'Нет'}\n`;
+        csv += `${formatDateRu(it.date)};${it.time};${it.name};${it.email};${it.car};${it.price || '-'};${it.address || '-'};${it.notes || '-'};${it.is_confirmed ? 'Да' : 'Нет'};${it.is_signed ? 'Да' : 'Нет'}\n`;
       });
-
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -687,10 +678,180 @@
       showToast('Отчет скачан!');
     }
 
+    /* ОТПРАВКА АКТА НА ПОДПИСЬ */
+    async function sendSignRequest(id) {
+      const { data: it, error } = await db.from('appointments').select('*').eq('id', id).single();
+      if (error || !it) { showToast('Ошибка', 'error'); return; }
+
+      const html = getEmailTemplate({
+        id: it.id, title: 'Акт выполненных работ', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
+        isSignBtn: true, isCancelBtn: false, isConfirmBtn: false, cancelLink: '',
+        introText: 'Работы по вашему автомобилю завершены! Пожалуйста, ознакомьтесь с актом и поставьте свою подпись для подтверждения качества и получения гарантии на 7 дней.'
+      });
+
+      if (await sendEmail({ to: it.email, subject: 'Акт выполненных работ (VAG FEATURE)', body: html })) {
+        showToast(`Ссылка на акт отправлена: ${it.name}`);
+      } else {
+        showToast('Ошибка отправки', 'error');
+      }
+    }
+
+    /* ПОДПИСЬ (CANVAS) */
+    let canvas, ctx, isDrawing = false, hasDrawn = false;
+
+    function initCanvas() {
+      canvas = document.getElementById('signature-canvas');
+      ctx = canvas.getContext('2d');
+      
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * 2;
+      canvas.height = rect.height * 2;
+      ctx.scale(2, 2);
+      
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#0f172a';
+
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+
+      canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+      canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+      canvas.addEventListener('touchend', stopDrawing);
+    }
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      ctx.beginPath();
+      const pos = getPos(e);
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const pos = getPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      hasDrawn = true;
+      document.getElementById('btn-submit-sign').disabled = false;
+    }
+
+    function stopDrawing() { isDrawing = false; }
+    function handleTouchStart(e) { e.preventDefault(); startDrawing(e); }
+    function handleTouchMove(e) { e.preventDefault(); draw(e); }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasDrawn = false;
+      document.getElementById('btn-submit-sign').disabled = true;
+    }
+
+    /* КОПИРОВАНИЕ И ОТКРЫТИЕ БАНКА */
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Номер скопирован!', 'success');
+      }).catch(err => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('Номер скопирован!', 'success');
+      });
+    }
+
+    function openBank(scheme, phone) {
+      copyToClipboard(phone);
+      const timeout = setTimeout(() => {
+        alert('Если приложение банка не открылось, просто откройте его вручную и вставьте скопированный номер: ' + phone);
+      }, 1500);
+
+      window.location.href = scheme;
+      
+      window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') clearTimeout(timeout);
+      }, { once: true });
+    }
+
+    async function saveSignature() {
+      if (!hasDrawn) return;
+      const btn = document.getElementById('btn-submit-sign');
+      btn.disabled = true; btn.textContent = 'Сохранение...';
+
+      const dataURL = canvas.toDataURL('image/png');
+      const { error } = await db.from('appointments').update({ signature: dataURL, is_signed: true }).eq('id', currentSignId);
+      
+      if (!error) {
+        const { data: appt } = await db.from('appointments').select('*').eq('id', currentSignId).single();
+        
+        document.getElementById('sign-content').innerHTML = `
+          <div style="text-align: center; padding: 20px 0; animation: scaleIn 0.4s ease;">
+            <div style="font-size: 4rem; margin-bottom: 15px;">✅</div>
+            <h2 style="color: #10b981; margin-bottom: 10px; font-size: 1.8rem;">Акт подписан!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem;">Сертификат гарантии на 7 дней отправлен на вашу почту.</p>
+            
+            ${appt.price ? `
+              <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">К оплате:</p>
+                <p style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 15px;">${appt.price}</p>
+                
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: left;">
+                  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Перевести на номер:</p>
+                  <p style="font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 5px;">${PAYMENT_PHONE}</p>
+                  <p style="font-size: 0.85rem; color: var(--text-muted);">Банк: <b>${PAYMENT_BANK}</b> (${PAYMENT_NAME})</p>
+                  <button onclick="copyToClipboard('${PAYMENT_PHONE}')" style="margin-top: 10px; background: var(--accent); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-size: 0.8rem; width: 100%;">📋 Скопировать номер</button>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Открыть приложение банка:</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <button onclick="openBank('ozonbank://', '${PAYMENT_PHONE}')" style="background: #005bff; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">OZON Bank</button>
+                  <button onclick="openBank('sberbank://', '${PAYMENT_PHONE}')" style="background: #fff; color: #000; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">Сбербанк</button>
+                  <button onclick="openBank('tinkoff://', '${PAYMENT_PHONE}')" style="background: #ffe033; color: #333; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">Тинькофф</button>
+                  <button onclick="openBank('vtb://', '${PAYMENT_PHONE}')" style="background: #002882; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">ВТБ</button>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">* Номер автоматически скопируется. Вставьте его в приложении банка.</p>
+              </div>
+            ` : '<p style="color: var(--ok); font-weight: bold;">Оплата не требуется (сумма не указана)</p>'}
+            
+            <p style="font-size: 0.9rem; opacity: 0.7; color: #fff; margin-top: 15px;">Вы можете закрыть эту вкладку.</p>
+          </div>
+        `;
+
+        const warrantyHtml = getWarrantyTemplate({ 
+          name: appt.name, car: appt.car, price: appt.price || 'По договоренности', 
+          date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address 
+        });
+        await sendEmail({ to: appt.email, subject: 'Сертификат гарантии (VAG FEATURE)', body: warrantyHtml });
+
+        const masterHtml = getEmailTemplate({ 
+          id: appt.id, title: 'Клиент подписал акт', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
+          introText: `Клиент <b>${escapeHtml(appt.name)}</b> успешно подписал акт выполненных работ.`
+        });
+        await sendEmail({ to: MASTER_EMAIL, subject: `✅ Акт подписан: ${appt.name}`, body: masterHtml });
+
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("📝 Клиент подписал акт!", { body: `${appt.name}`, icon: LOGO_URL });
+        }
+      } else {
+        alert("Ошибка сохранения подписи. Попробуйте еще раз.");
+        btn.disabled = false; btn.textContent = 'Подписать и продолжить';
+      }
+    }
+
     /* РУЧНОЕ НАПОМИНАНИЕ */
     async function sendManualReminder(id, btn) {
-      btn.disabled = true;
-      btn.innerHTML = '⏳ Отправка...';
+      btn.disabled = true; btn.innerHTML = '⏳ Отправка...';
 
       const { data: it, error } = await db.from('appointments').select('*').eq('id', id).single();
       if (error || !it) { showToast('Ошибка', 'error'); btn.disabled = false; btn.innerHTML = '✉️ Напомнить'; return; }
@@ -707,8 +868,7 @@
         await db.from('appointments').update({ manual_reminder_sent: true }).eq('id', it.id);
         showToast(`Письмо отправлено`);
         localStorage.setItem('reminder_lock_' + id, Date.now() + 300000);
-        renderList();
-        startButtonTimers(); 
+        renderList(); startButtonTimers(); 
       } else {
         showToast('Ошибка отправки', 'error');
         btn.disabled = false; btn.innerHTML = '✉️ Напомнить';
@@ -736,7 +896,7 @@
       }, 1000);
     }
 
-    /* АВТО-НАПОМИНАНИЯ И СБОР ОТЗЫВОВ */
+    /* АВТО-НАПОМИНАНИЯ */
     async function checkReminders() {
       if (currentTab === 'archive') return;
       const items = await loadAll();
@@ -746,22 +906,8 @@
       for (const it of items) {
         const apptTime = new Date(it.date+'T'+it.time).getTime();
         const timeUntil = apptTime - now.getTime();
-        
         const cancelLink = `${SITE_URL}?cancel=${it.id}`;
 
-        // Сбор отзывов (через 2 часа после визита)
-        if (timeUntil < -2 * 60 * 60 * 1000 && !it.review_sent) {
-          const reviewHtml = getReviewTemplate({ name: it.name });
-          if (await sendEmail({ to: it.email, subject: 'Как прошла диагностика? (VAG FEATURE)', body: reviewHtml })) {
-            await db.from('appointments').update({ review_sent: true }).eq('id', it.id);
-            addLog(`⭐ Запрошен отзыв у ${it.name}`, 'ok');
-          }
-          continue; 
-        }
-
-        if (timeUntil < 0) continue; 
-
-        // 12 ЧАСОВ
         if (!it.reminder_12h_sent && it.date !== now.toISOString().slice(0,10)) {
           if (timeUntil <= 12 * 60 * 60 * 1000) {
             if (timeUntil > 11 * 60 * 60 * 1000) {
@@ -778,7 +924,6 @@
           }
         }
 
-        // 3 ЧАСА
         if (!it.reminder_3h_sent) {
           if (timeUntil <= 3 * 60 * 60 * 1000) {
             const html = getEmailTemplate({ 
@@ -819,22 +964,34 @@
       if (rows && rows.length > 0) {
         const appt = rows[0];
         await db.from('appointments').update({ is_confirmed: true }).eq('id', confirmId);
-        
         if ("Notification" in window && Notification.permission === "granted") {
-          try {
-            new Notification("✅ Клиент подтвердил визит!", { 
-              body: `${appt.name} (${appt.car}) приедет ${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}`,
-              icon: LOGO_URL,
-              vibrate: [200, 100, 200]
-            });
-          } catch(e) { console.log("Push error:", e); }
+          try { new Notification("✅ Клиент подтвердил визит!", { body: `${appt.name}`, icon: LOGO_URL }); } catch(e) {}
         }
-
         const masterHtml = getEmailTemplate({ 
           id: appt.id, title: 'Подтверждение', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
           introText: `Отличные новости! Клиент <b>${escapeHtml(appt.name)}</b> подтвердил свою запись.`
         });
         await sendEmail({ to: MASTER_EMAIL, subject: `✅ Подтверждение: ${appt.name}`, body: masterHtml });
+      }
+    }
+
+    /* ЭКРАН ПОДПИСИ */
+    async function handleSigning(signId) {
+      document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
+      document.getElementById('sign-screen').style.display = 'flex';
+      currentSignId = signId;
+
+      const { data: appt } = await db.from('appointments').select('*').eq('id', signId).single();
+      
+      if (appt) {
+        document.getElementById('agreement-text').innerHTML = `
+          <p><b>Акт выполненных работ</b></p>
+          <p>Я, <b>${escapeHtml(appt.name)}</b>, подтверждаю, что работы по автомобилю <b>${escapeHtml(appt.car)}</b> выполнены в полном объеме и с надлежащим качеством.</p>
+          <p>Стоимость работ: <b>${appt.price || 'По договоренности'}</b>.</p>
+          <p>Я ознакомлен(а) и согласен(на) с условиями предоставления гарантии на выполненные работы сроком на <b>7 (семь) дней</b> с момента подписания настоящего акта.</p>
+          <p>В случае выявления недостатков в течение гарантийного срока, Исполнитель обязуется устранить их за свой счет в соответствии со <b>ст. 29 Закона РФ «О защите прав потребителей»</b> и <b>ст. 724 Гражданского кодекса РФ</b>.</p>
+        `;
+        setTimeout(initCanvas, 100); 
       }
     }
 
@@ -852,7 +1009,7 @@
         notes: document.getElementById('notes').value.trim(),
         date: document.getElementById('date').value,
         time: document.getElementById('time').value,
-        reminder_12h_sent: false, reminder_3h_sent: false, is_confirmed: false, manual_reminder_sent: false, is_archived: false, review_sent: false
+        reminder_12h_sent: false, reminder_3h_sent: false, is_confirmed: false, manual_reminder_sent: false, is_archived: false, review_sent: false, is_signed: false
       };
 
       try {
@@ -892,10 +1049,9 @@
       } else { document.getElementById('garland').innerHTML = ''; document.getElementById('snow-container').innerHTML = ''; }
     }
 
-    /* ИНИЦИАЛИЗАЦИЯ И ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ НА САЙТ */
+    /* ИНИЦИАЛИЗАЦИЯ */
     (async () => {
       checkNotificationStatus();
-
       if (localStorage.getItem('rgb_mode') === 'true') { document.getElementById('rgb-toggle').checked = true; toggleRGB(document.getElementById('rgb-toggle')); }
       if (localStorage.getItem('ny_mode') === 'true') { document.getElementById('ny-toggle').checked = true; toggleNewYear(document.getElementById('ny-toggle')); }
       
@@ -905,28 +1061,20 @@
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('cancel')) { await handleCancellation(urlParams.get('cancel')); } 
       else if (urlParams.get('confirm')) { await handleConfirmation(urlParams.get('confirm')); } 
+      else if (urlParams.get('sign')) { await handleSigning(urlParams.get('sign')); }
       else {
         addLog('🚀 Система запущена', 'ok');
         await cleanupArchive();
         await renderList();
         
-        // Realtime обновления
         db.channel('realtime-appointments')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
-            addLog('🔄 Realtime обновление', 'ok'); 
-            renderList(); 
+            addLog('🔄 Realtime обновление', 'ok'); renderList(); 
           }).subscribe();
 
-        // Фоновое обновление каждые 15 секунд (пока сайт открыт)
         setInterval(() => { renderList(); }, 15000);
-
-        // МГНОВЕННОЕ обновление при возврате на вкладку (разблокировке телефона)
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') {
-            addLog('🔄 Возврат на сайт, обновление...', 'ok');
-            renderList();
-            checkReminders();
-          }
+          if (document.visibilityState === 'visible') { renderList(); checkReminders(); }
         });
 
         checkReminders(); 
