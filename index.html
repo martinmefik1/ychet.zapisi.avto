@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Учет записей — Автосервис</title>
+  <title>VAG FEATURE — Учет записей</title>
   
   <!-- PWA настройки для iPhone -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -85,11 +85,7 @@
       display: flex; 
       align-items: center; 
       gap: 12px;
-      background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1);
-      background-size: 300% 100%; 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent;
-      animation: rgbShift 5s linear infinite;
+      color: #fff;
     }
 
     /* Стили для логотипа в шапке */
@@ -98,6 +94,27 @@
       width: auto;
       object-fit: contain;
       border-radius: 8px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1);
+      background-size: 300% 100%; 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent;
+      animation: rgbShift 5s linear infinite;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 1px;
     }
 
     @keyframes rgbShift { 
@@ -589,7 +606,6 @@
       to { transform: scale(1); opacity: 1; } 
     }
 
-    /* Стили для логотипа на экране отмены */
     .cancel-logo {
       max-width: 140px;
       width: 100%;
@@ -671,8 +687,7 @@
   <!-- Экран отмены -->
   <div id="cancel-screen">
     <div class="cancel-content">
-      <!-- Добавлен Логотип -->
-      <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="Логотип" class="cancel-logo">
+      <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
       <div class="cancel-title">Запись отменена</div>
       <div class="cancel-text">
         Ваша запись на диагностику успешно отменена.<br>
@@ -688,9 +703,11 @@
   <div class="app">
     <div class="header">
       <h1>
-        <!-- Добавлен Логотип в шапку -->
-        <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="Логотип" class="site-logo">
-        Учет записей
+        <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="site-logo">
+        <div class="brand-text">
+          <span class="brand-title">VAG FEATURE</span>
+          <span class="brand-sub">Учет записей</span>
+        </div>
       </h1>
       <div class="header-controls">
         <label class="toggle-container">
@@ -726,7 +743,7 @@
           <input id="email" type="email" required placeholder="client@mail.ru">
           
           <label for="car">Марка и модель авто</label>
-          <input id="car" required placeholder="Toyota Camry">
+          <input id="car" required placeholder="Volkswagen Passat">
           
           <label for="address">Адрес</label>
           <input id="address" placeholder="ул. Ленина, 10">
@@ -762,7 +779,6 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const MASTER_EMAIL = 'vag.feature.avito@gmail.com'; 
     const SITE_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/';
-    // Путь к логотипу для писем
     const LOGO_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png';
 
     /* =========================================
@@ -826,24 +842,26 @@
     }
 
     /* =========================================
-       НОВЫЙ ШАБЛОН ПИСЬМА (С ЛОГОТИПОМ)
+       ШАБЛОН ПИСЬМА (С ЛОГОТИПОМ И РАЗНЫМ ТЕКСТОМ)
        ========================================= */
-    function getEmailTemplate({ title, color, name, car, date, time, address, isCancelBtn, cancelLink }) {
+    function getEmailTemplate({ title, color, name, car, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false }) {
+      const mainText = introText || 'Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:';
+      
       return `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
         <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
           
           <!-- Шапка письма с логотипом -->
           <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid ${color};">
-            <img src="${LOGO_URL}" alt="Логотип Автосервиса" style="max-width: 120px; height: auto; margin-bottom: 15px; border-radius: 8px; display: inline-block;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px;">АВТОСЕРВИС</h1>
+            <img src="${LOGO_URL}" alt="VAG FEATURE" style="max-width: 120px; height: auto; margin-bottom: 15px; border-radius: 8px; display: inline-block;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px;">VAG FEATURE</h1>
             <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">${title}</p>
           </div>
           
           <!-- Тело письма -->
           <div style="padding: 40px 30px; color: #334155;">
             <p style="font-size: 18px; margin-top: 0; font-weight: 600; color: #0f172a;">Здравствуйте, ${name}!</p>
-            <p style="font-size: 15px; color: #475569; margin-bottom: 25px;">Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:</p>
+            <p style="font-size: 15px; color: #475569; margin-bottom: 25px;">${mainText}</p>
             
             <!-- Блок с информацией -->
             <div style="background: #f8fafc; border-radius: 12px; padding: 20px 25px; margin: 25px 0; border: 1px solid #e2e8f0;">
@@ -869,6 +887,7 @@
               </table>
             </div>
 
+            ${!isMaster ? `
             <!-- Блок совета -->
             <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 25px;">
               <p style="margin: 0 0 12px 0; font-size: 15px; color: #92400e; font-weight: 600;">💡 Рекомендация от мастеров</p>
@@ -895,12 +914,13 @@
                 <a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">Отменить запись</a>
               </div>
             ` : ''}
+            ` : ''}
           </div>
 
           <!-- Подвал -->
           <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
             Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.<br>
-            © ${new Date().getFullYear()} Автосервис
+            © 2026 VAG FEATURE
           </div>
         </div>
       </div>`;
@@ -1024,7 +1044,8 @@
         time: it.time.slice(0,5), 
         address: it.address,
         isCancelBtn: true, 
-        cancelLink: `${SITE_URL}?cancel=${it.id}`
+        cancelLink: `${SITE_URL}?cancel=${it.id}`,
+        introText: 'Мастер напоминает о вашей записи на диагностику. Пожалуйста, подтвердите ваши планы или сообщите нам, если обстоятельства изменились.'
       });
 
       const ok = await sendEmail({ to: it.email, subject: 'Напоминание: вы записаны на диагностику', body: html });
@@ -1101,7 +1122,8 @@
                 time: it.time, 
                 address: it.address, 
                 isCancelBtn: true, 
-                cancelLink 
+                cancelLink,
+                introText: 'Напоминаем, что завтра у вас запланирована диагностика автомобиля. Пожалуйста, подтвердите ваши планы или сообщите нам, если планы изменились.'
               });
               if (await sendEmail({ to: it.email, subject: 'Напоминание: диагностика завтра', body: html })) {
                 await db.from('appointments').update({ reminder_12h_sent: true }).eq('id', it.id); 
@@ -1117,7 +1139,7 @@
         if (!it.reminder_3h_sent) {
           if (timeUntil <= 3 * 60 * 60 * 1000) {
             const html = getEmailTemplate({ 
-              title: 'Напоминание: диагностика через 3 часа', 
+              title: 'Напоминание: через 3 часа', 
               color: '#f59e0b', 
               name: it.name, 
               car: it.car, 
@@ -1125,7 +1147,8 @@
               time: it.time, 
               address: it.address, 
               isCancelBtn: true, 
-              cancelLink 
+              cancelLink,
+              introText: 'Напоминаем, что уже через 3 часа у вас запланирована диагностика. Мы ждем вас!'
             });
             if (await sendEmail({ to: it.email, subject: 'Напоминание: диагностика через 3 часа', body: html })) {
               await db.from('appointments').update({ reminder_3h_sent: true }).eq('id', it.id); 
@@ -1156,14 +1179,15 @@
             new Notification("❌ Запись отменена", { body: `${appt.name} отменил запись` });
           }
           const masterHtml = getEmailTemplate({ 
-            title: 'Запись отменена клиентом', 
+            title: 'Отмена записи клиентом', 
             color: '#ef4444', 
             name: 'Мастер', 
             car: appt.car, 
             date: formatDateRu(appt.date), 
             time: appt.time.slice(0,5), 
             address: appt.address, 
-            introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.` 
+            isMaster: true,
+            introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись. Слот на указанное время освобожден.`
           });
           await sendEmail({ to: MASTER_EMAIL, subject: `❌ Отмена: ${appt.name}`, body: masterHtml });
         }
@@ -1199,7 +1223,7 @@
         btn.textContent = 'Отправка письма...';
 
         const html = getEmailTemplate({ 
-          title: 'Вы записаны на диагностику', 
+          title: 'Запись создана', 
           color: '#10b981', 
           name: item.name, 
           car: item.car, 
@@ -1207,7 +1231,8 @@
           time: item.time, 
           address: item.address, 
           isCancelBtn: true, 
-          cancelLink: `${SITE_URL}?cancel=${data[0].id}` 
+          cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
+          introText: 'Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:'
         });
         
         await sendEmail({ to: item.email, subject: 'Запись на диагностику создана', body: html });
