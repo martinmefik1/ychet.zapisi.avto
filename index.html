@@ -37,7 +37,7 @@
   }
 
   /* Сетка */
-  .grid { display: grid; grid-template-columns: 420px 1fr; gap: 24px; align-items: start; }
+  .grid { display: grid; grid-template-columns: 400px 1fr; gap: 24px; align-items: start; }
   @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
   
   /* Карточки */
@@ -143,7 +143,6 @@
 </head>
 <body>
 
-<!-- Экран отмены (показывается клиенту при нажатии кнопки в письме) -->
 <div id="cancel-screen">
   <div class="cancel-card">
     <div style="font-size: 4rem; margin-bottom: 16px;">👌</div>
@@ -170,15 +169,11 @@
           <label for="name">Имя клиента</label>
           <input id="name" required placeholder="Иван Петров">
           
-          <div class="row">
-            <div><label for="phone">Телефон</label><input id="phone" required placeholder="+7 900 000-00-00"></div>
-            <div><label for="email">Email</label><input id="email" type="email" required placeholder="client@mail.ru"></div>
-          </div>
+          <label for="email">Email</label>
+          <input id="email" type="email" required placeholder="client@mail.ru">
           
-          <div class="row">
-            <div><label for="car">Марка и модель</label><input id="car" required placeholder="Toyota Camry"></div>
-            <div><label for="plate">Госномер</label><input id="plate" required placeholder="А 123 ВС 77"></div>
-          </div>
+          <label for="car">Марка и модель авто</label>
+          <input id="car" required placeholder="Toyota Camry">
 
           <label for="address">Адрес</label>
           <input id="address" placeholder="ул. Ленина, 10">
@@ -222,7 +217,6 @@
 const SUPABASE_URL = 'https://zbnsktordbudmuqvmcvs.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_46Kt_R95Ri4W3ZJd0JHNwQ_c_es5diR';
 
-// ВАЖНО: Переменная называется db, чтобы не было конфликта с библиотекой supabase
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const MASTER_EMAIL = 'vag.feature.avito@gmail.com'; 
@@ -289,9 +283,9 @@ async function sendEmail({ to, subject, body }) {
 }
 
 /* ============================================================
-   4. HTML-ШАБЛОН ПИСЬМА
+   4. HTML-ШАБЛОН ПИСЬМА (Без госномера)
    ============================================================ */
-function getEmailTemplate({ title, color, name, car, plate, date, time, address, isCancelBtn = false, cancelLink = '', introText = '' }) {
+function getEmailTemplate({ title, color, name, car, date, time, address, isCancelBtn = false, cancelLink = '', introText = '' }) {
   return `
   <div style="font-family: Arial, sans-serif; background: #f4f6f8; padding: 20px;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
@@ -303,7 +297,7 @@ function getEmailTemplate({ title, color, name, car, plate, date, time, address,
         <p style="font-size: 16px;">${introText || 'Напоминаем, что вы записаны на диагностику автомобиля.'}</p>
         
         <div style="background: #f8fafc; border-left: 4px solid ${color}; padding: 15px; margin: 20px 0; border-radius: 4px;">
-          ${car ? `<p style="margin: 0 0 8px 0;"><b>🚗 Автомобиль:</b> ${car} <span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-family:monospace;">${plate}</span></p>` : ''}
+          ${car ? `<p style="margin: 0 0 8px 0;"><b>🚗 Автомобиль:</b> ${car}</p>` : ''}
           <p style="margin: 0 0 8px 0;"><b>📅 Дата:</b> ${date}</p>
           <p style="margin: 0 0 8px 0;"><b>⏰ Время:</b> ${time}</p>
           ${address ? `<p style="margin: 0;"><b>📍 Адрес:</b> ${address}</p>` : ''}
@@ -349,7 +343,7 @@ async function markReminderSent(id, field) {
 }
 
 /* ============================================================
-   6. ЛОГИКА АВТО-НАПОМИНАНИЙ (12ч и 3ч)
+   6. ЛОГИКА АВТО-НАПОМИНАНИЙ
    ============================================================ */
 function appointmentDate(item) { return new Date(`${item.date}T${item.time}:00`); }
 function reminder12hTime(item) { return new Date(appointmentDate(item).getTime() - 12 * 60 * 60 * 1000); }
@@ -370,7 +364,7 @@ async function checkReminders(manual = false) {
       if (reminder12hTime(it) <= now) {
         const html = getEmailTemplate({
           title: 'Напоминание за 12 часов', color: '#6366f1', name: it.name,
-          car: it.car, plate: it.plate, date: formatDateRu(it.date), time: it.time, address: it.address,
+          car: it.car, date: formatDateRu(it.date), time: it.time, address: it.address,
           isCancelBtn: true, cancelLink
         });
         if ((await sendEmail({ to: it.email, subject: 'Напоминание: диагностика завтра', body: html })).ok) {
@@ -384,7 +378,7 @@ async function checkReminders(manual = false) {
       if (reminder3hTime(it) <= now) {
         const html = getEmailTemplate({
           title: 'Напоминание за 3 часа', color: '#f59e0b', name: it.name,
-          car: it.car, plate: it.plate, date: formatDateRu(it.date), time: it.time, address: it.address,
+          car: it.car, date: formatDateRu(it.date), time: it.time, address: it.address,
           isCancelBtn: true, cancelLink
         });
         if ((await sendEmail({ to: it.email, subject: 'Напоминание: диагностика через 3 часа', body: html })).ok) {
@@ -403,7 +397,7 @@ async function checkReminders(manual = false) {
 }
 
 /* ============================================================
-   7. РУЧНОЕ НАПОМИНАНИЕ (Кнопка "Напомнить")
+   7. РУЧНОЕ НАПОМИНАНИЕ
    ============================================================ */
 async function sendManualReminder(id) {
   const { data, error } = await db.from('appointments').select('*').eq('id', id).single();
@@ -413,7 +407,7 @@ async function sendManualReminder(id) {
   const cancelLink = `${SITE_URL}?cancel=${it.id}`;
   const html = getEmailTemplate({
     title: 'Напоминание о записи', color: '#10b981', name: it.name,
-    car: it.car, plate: it.plate, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
+    car: it.car, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
     isCancelBtn: true, cancelLink,
     introText: 'Мастер напоминает, что вы записаны на диагностику автомобиля.'
   });
@@ -458,8 +452,7 @@ async function renderList() {
       return `<tr>
         <td>
           <div class="cell-name">${escapeHtml(it.name)}</div>
-          ${it.car ? `<div class="cell-sub" style="color:var(--accent); font-weight:600;">🚗 ${escapeHtml(it.car)} <span style="background:var(--border); padding:2px 4px; border-radius:4px; font-family:monospace;">${escapeHtml(it.plate)}</span></div>` : ''}
-          <div class="cell-sub">📞 ${escapeHtml(it.phone)}</div>
+          ${it.car ? `<div class="cell-sub" style="color:var(--accent); font-weight:600;">🚗 ${escapeHtml(it.car)}</div>` : ''}
           <div class="cell-sub">✉️ ${escapeHtml(it.email)}</div>
         </td>
         <td>
@@ -500,7 +493,7 @@ async function removeItem(id) {
 }
 
 /* ============================================================
-   9. ОТМЕНА КЛИЕНТОМ (Переход по ссылке из письма)
+   9. ОТМЕНА КЛИЕНТОМ
    ============================================================ */
 async function handleCancellation(cancelId) {
   document.getElementById('cancel-screen').style.display = 'flex';
@@ -513,8 +506,8 @@ async function handleCancellation(cancelId) {
     if (deleted) {
       const masterHtml = getEmailTemplate({
         title: 'Запись отменена', color: '#ef4444', name: 'Мастер',
-        car: appt.car, plate: appt.plate, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address,
-        introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.<br><br>Телефон: ${escapeHtml(appt.phone)}<br>Email: ${escapeHtml(appt.email)}`
+        car: appt.car, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address,
+        introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.<br><br>Email: ${escapeHtml(appt.email)}`
       });
       await sendEmail({
         to: MASTER_EMAIL,
@@ -535,10 +528,8 @@ document.getElementById('form').addEventListener('submit', async (e) => {
 
   const item = {
     name: document.getElementById('name').value.trim(),
-    phone: document.getElementById('phone').value.trim(),
     email: document.getElementById('email').value.trim(),
     car: document.getElementById('car').value.trim(),
-    plate: document.getElementById('plate').value.trim(),
     address: document.getElementById('address').value.trim(),
     notes: document.getElementById('notes').value.trim(),
     date: document.getElementById('date').value,
@@ -556,7 +547,7 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     const cancelLink = `${SITE_URL}?cancel=${newId}`;
     const html = getEmailTemplate({
       title: 'Вы записаны на диагностику', color: '#6366f1', name: item.name,
-      car: item.car, plate: item.plate, date: formatDateRu(item.date), time: item.time, address: item.address,
+      car: item.car, date: formatDateRu(item.date), time: item.time, address: item.address,
       isCancelBtn: true, cancelLink
     });
     
@@ -581,7 +572,6 @@ document.getElementById('form').addEventListener('submit', async (e) => {
    11. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
    ============================================================ */
 (async () => {
-  // Устанавливаем дату на завтра по умолчанию
   document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   document.getElementById('time').value = '10:00';
 
@@ -589,10 +579,8 @@ document.getElementById('form').addEventListener('submit', async (e) => {
   const cancelId = urlParams.get('cancel');
 
   if (cancelId) {
-    // Если клиент перешел по ссылке отмены из письма
     await handleCancellation(cancelId);
   } else {
-    // Обычная загрузка сайта
     document.getElementById('status-badge').textContent = '🟢 База подключена';
     document.getElementById('status-badge').style.color = 'var(--ok)';
     document.getElementById('status-badge').style.borderColor = 'var(--ok)';
@@ -601,7 +589,6 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     await renderList();
     checkReminders();
     
-    // Автоматическая проверка напоминаний каждую минуту
     setInterval(() => checkReminders(false), 60 * 1000);
   }
 })();
