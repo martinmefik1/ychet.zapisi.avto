@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Учет записей — Автосервис</title>
-<!-- PWA настройки для iPhone -->
+<!-- PWA настройки -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href='data:application/manifest+json,{"name":"Учет записей","short_name":"Записи","start_url":"/ychet.zapisi.avto/","display":"standalone","background_color":"#0b1120","theme_color":"#0b1120"}'>
@@ -13,7 +13,7 @@
 <style>
   :root {
     --bg: #0b1120; 
-    --card-bg: rgba(30, 41, 59, 0.8);
+    --card-bg: rgba(30, 41, 59, 0.85);
     --accent: #6366f1; 
     --accent-glow: rgba(99, 102, 241, 0.4);
     --accent-hover: #4f46e5;
@@ -28,15 +28,32 @@
     --text-muted: #94a3b8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  /* Анимированный фон */
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 20px; line-height: 1.5;
-    background-image: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                      radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
-    background-attachment: fixed;
+    background-color: var(--bg);
+    color: var(--text); min-height: 100vh; padding: 24px 20px; line-height: 1.5;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
+    position: relative;
   }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: 
+      radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.12), transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.08), transparent 40%),
+      radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.08), transparent 40%);
+    animation: bgRotate 25s linear infinite;
+    z-index: -1;
+  }
+  @keyframes bgRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
   .app { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
 
   /* Шапка */
@@ -50,16 +67,23 @@
   }
   @keyframes rgbShift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-  .header-controls { display: flex; align-items: center; gap: 16px; }
+  .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .badge-cloud { font-size: 0.8rem; font-weight: 600; background: var(--ok-bg); color: var(--ok); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--ok); box-shadow: 0 0 15px var(--ok-bg); }
 
-  /* Новогодний тумблер */
-  .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+  /* Тумблеры */
+  .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; user-select: none; }
   .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--border); border-radius: 12px; transition: 0.3s; }
   .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
+  
+  /* Новый год */
   #ny-toggle:checked + .toggle-switch { background: var(--err); box-shadow: 0 0 10px var(--err-bg); }
   #ny-toggle:checked + .toggle-switch::after { transform: translateX(20px); }
   #ny-toggle { display: none; }
+
+  /* RGB Рамки */
+  #rgb-toggle:checked + .toggle-switch { background: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+  #rgb-toggle:checked + .toggle-switch::after { transform: translateX(20px); }
+  #rgb-toggle { display: none; }
 
   /* Сетка */
   .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
@@ -69,8 +93,42 @@
     .header-controls { width: 100%; justify-content: space-between; }
   }
 
-  /* Карточки */
-  .card { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  /* Карточки (с поддержкой RGB) */
+  .card { 
+    background: var(--card-bg); backdrop-filter: blur(16px); 
+    border: 1px solid var(--border); border-radius: 16px; 
+    padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
+    position: relative;
+  }
+  
+  body.rgb-mode .card {
+    border: none; /* Убираем стандартную рамку */
+  }
+  body.rgb-mode .card::before {
+    content: "";
+    position: absolute;
+    inset: -2px; /* Толщина рамки */
+    border-radius: 18px;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    background-size: 400%;
+    z-index: -2;
+    animation: rgbBorder 5s linear infinite;
+  }
+  body.rgb-mode .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: var(--card-bg); /* Перекрываем центр */
+    backdrop-filter: blur(16px);
+    z-index: -1;
+  }
+  @keyframes rgbBorder {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   .card h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 
   /* Форма */
@@ -95,14 +153,14 @@
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
   .btn-icon { padding: 8px 12px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-  .btn-send { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+  .btn-send { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); }
   .btn-send:hover { background: var(--accent); color: #fff; }
   .btn-send:disabled { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
   .btn-delete { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
   .btn-delete:hover { background: var(--err); color: #fff; }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  /* Таблица (Адаптив) */
+  /* Таблица */
   .table-wrapper { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   th, td { text-align: left; padding: 14px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -136,14 +194,19 @@
   .toast.error { border-left: 4px solid var(--err); }
   @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-  /* Логи */
+  /* Логи и красивый скролл */
   .log-wrapper { margin-bottom: 24px; border-radius: 12px; border: 1px solid var(--border); background: #020617; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
   .log-header { background: #1e293b; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
   .log-box { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #e2e8f0; padding: 12px 16px; height: 110px; overflow-y: auto; line-height: 1.6; }
   .log-box .t { color: #64748b; margin-right: 8px; }
   .log-box .ok { color: #4ade80; }
   .log-box .err { color: #f87171; }
-  @media (max-width: 768px) { .log-box { height: 80px; font-size: 0.65rem; } }
+  
+  /* Кастомный скролл для логов */
+  .log-box::-webkit-scrollbar { width: 8px; }
+  .log-box::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
+  .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  .log-box::-webkit-scrollbar-thumb:hover { background: #475569; }
 
   /* Экран отмены */
   #cancel-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; }
@@ -193,6 +256,11 @@
   <div class="header">
     <h1>🚗 Учет записей</h1>
     <div class="header-controls">
+      <label class="toggle-container">
+        <input type="checkbox" id="rgb-toggle" onchange="toggleRGB(this)">
+        <span class="toggle-switch"></span>
+        🌈 RGB
+      </label>
       <label class="toggle-container">
         <input type="checkbox" id="ny-toggle" onchange="toggleNewYear(this)">
         <span class="toggle-switch"></span>
@@ -270,7 +338,7 @@ function showToast(message, type = 'success') {
   setTimeout(() => { t.style.animation = 'slideIn 0.3s ease reverse forwards'; setTimeout(() => t.remove(), 300); }, 3500);
 }
 
-/* 3. ОТПРАВКА ПИСЕМ (Оптимизировано) */
+/* 3. ОТПРАВКА ПИСЕМ */
 async function sendEmail({ to, subject, body }) {
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
@@ -316,7 +384,7 @@ async function loadAll() {
 
 function formatDateRu(iso) { if(!iso) return ''; const [y, m, d] = iso.split('-'); return `${d}.${m}.${y}`; }
 
-/* 6. ОТРИСОВКА (С ускорением) */
+/* 6. ОТРИСОВКА */
 async function renderList() {
   const items = await loadAll();
   const el = document.getElementById('list');
@@ -358,9 +426,8 @@ async function renderList() {
   startButtonTimers();
 }
 
-/* 7. МГНОВЕННАЯ БЛОКИРОВКА И ОТПРАВКА */
+/* 7. РУЧНОЕ НАПОМИНАНИЕ (мгновенная блокировка) */
 async function sendManualReminder(id, btn) {
-  // Мгновенная блокировка ДО отправки
   btn.disabled = true;
   btn.innerHTML = '⏳ Отправка...';
 
@@ -381,11 +448,11 @@ async function sendManualReminder(id, btn) {
   
   if (ok) {
     showToast(`Письмо отправлено: ${it.name}`);
-    localStorage.setItem('reminder_lock_' + id, Date.now() + 300000); // 5 мин
+    localStorage.setItem('reminder_lock_' + id, Date.now() + 300000); // 5 минут
     addLog(`✉️ Ручное напоминание: ${it.name}`, 'ok');
-    startButtonTimers(); // Запускаем таймер
+    startButtonTimers(); 
   } else {
-    showToast('Ошибка при отправке письма (проверьте пароль в Supabase)', 'error');
+    showToast('Ошибка отправки (Проверьте пароль Gmail в Supabase)', 'error');
     btn.disabled = false; 
     btn.innerHTML = '✉️ Напомнить';
   }
@@ -503,7 +570,7 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     document.getElementById('time').value = '10:00';
     
-    renderList(); // Обновляем таблицу
+    renderList();
     checkReminders();
   } catch (err) {
     addLog(`❌ Ошибка: ${err.message}`, 'err');
@@ -513,12 +580,22 @@ document.getElementById('form').addEventListener('submit', async (e) => {
   }
 });
 
-/* 11. НОВОГОДНИЕ ЭФФЕКТЫ */
+/* 11. ЭФФЕКТЫ (RGB и Новый год) */
+function toggleRGB(checkbox) {
+  if (checkbox.checked) {
+    document.body.classList.add('rgb-mode');
+    localStorage.setItem('rgb_mode', 'true');
+  } else {
+    document.body.classList.remove('rgb-mode');
+    localStorage.setItem('rgb_mode', 'false');
+  }
+}
+
 function toggleNewYear(checkbox) {
   if (checkbox.checked) {
     document.body.classList.add('ny-mode');
+    localStorage.setItem('ny_mode', 'true');
     
-    // Гирлянда
     const garland = document.getElementById('garland');
     garland.innerHTML = '';
     for(let i=0; i<30; i++) {
@@ -527,7 +604,6 @@ function toggleNewYear(checkbox) {
       garland.appendChild(bulb);
     }
 
-    // Снег
     const snowContainer = document.getElementById('snow-container');
     snowContainer.innerHTML = '';
     for (let i = 0; i < 50; i++) {
@@ -541,6 +617,7 @@ function toggleNewYear(checkbox) {
     }
   } else {
     document.body.classList.remove('ny-mode');
+    localStorage.setItem('ny_mode', 'false');
     document.getElementById('garland').innerHTML = '';
     document.getElementById('snow-container').innerHTML = '';
   }
@@ -548,6 +625,16 @@ function toggleNewYear(checkbox) {
 
 /* 12. ИНИЦИАЛИЗАЦИЯ */
 (async () => {
+  // Восстанавливаем состояния тумблеров
+  if (localStorage.getItem('rgb_mode') === 'true') {
+    document.getElementById('rgb-toggle').checked = true;
+    toggleRGB(document.getElementById('rgb-toggle'));
+  }
+  if (localStorage.getItem('ny_mode') === 'true') {
+    document.getElementById('ny-toggle').checked = true;
+    toggleNewYear(document.getElementById('ny-toggle'));
+  }
+
   if ("Notification" in window && Notification.permission === "default") {
     try { await Notification.requestPermission(); } catch(e) {}
   }
@@ -562,7 +649,6 @@ function toggleNewYear(checkbox) {
     addLog('🚀 Система запущена', 'ok');
     await renderList();
     
-    // Синхронизация
     db.channel('realtime-appointments')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, payload => {
         addLog('🔄 Синхронизация с другого устройства', 'ok');
