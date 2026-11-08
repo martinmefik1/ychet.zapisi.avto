@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Запись на диагностику — автосервис</title>
-<!-- Подключаем Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -98,9 +97,30 @@
   }
   .log-box::-webkit-scrollbar { width: 6px; }
   .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+  /* Экран отмены */
+  #cancel-screen {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg); z-index: 9999; align-items: center; justify-content: center;
+  }
+  .cancel-card {
+    background: var(--card); padding: 40px; border-radius: 24px; text-align: center;
+    max-width: 480px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+  .cancel-card h2 { color: var(--err); margin-bottom: 16px; font-size: 1.5rem; }
+  .cancel-card p { color: var(--text-muted); margin-bottom: 24px; font-size: 1rem; }
 </style>
 </head>
 <body>
+
+<!-- ЭКРАН ОТМЕНЫ ДЛЯ КЛИЕНТА -->
+<div id="cancel-screen">
+  <div class="cancel-card">
+    <h2>❌ Запись отменена</h2>
+    <p>Ваша запись на диагностику успешно отменена. Мастер получил уведомление. Вы можете закрыть эту страницу.</p>
+    <a href="/" style="color: var(--accent); font-weight: 600; text-decoration: none;">← Вернуться на главную</a>
+  </div>
+</div>
 
 <div class="app">
   <div class="header">
@@ -115,43 +135,26 @@
         <form id="form">
           <label for="name">Имя клиента</label>
           <input id="name" required placeholder="Иван Петров">
-
           <label for="phone">Телефон</label>
           <input id="phone" required placeholder="+7 900 123-45-67">
-
           <label for="email">Email клиента</label>
           <input id="email" type="email" required placeholder="client@example.com">
-
           <label for="address">Адрес (куда приехать клиенту)</label>
           <input id="address" placeholder="ул. Ленина, 10, автосервис «Гараж»">
-
           <div class="row">
-            <div>
-              <label for="date">Дата</label>
-              <input id="date" type="date" required>
-            </div>
-            <div>
-              <label for="time">Время</label>
-              <input id="time" type="time" required>
-            </div>
+            <div><label for="date">Дата</label><input id="date" type="date" required></div>
+            <div><label for="time">Время</label><input id="time" type="time" required></div>
           </div>
-
           <label for="notes">📝 Заметки для мастера (клиент не видит)</label>
           <textarea id="notes" placeholder="Например: клиент жалуется на стук в подвеске..."></textarea>
-
           <button class="btn-primary" type="submit">Сохранить запись</button>
         </form>
-        <div class="hint">
-          Напоминания уходят за <b>12 часов</b> (если запись не сегодня) и за <b>3 часа</b> до визита.
-        </div>
       </div>
-
       <div class="card">
         <h2>📋 Все записи</h2>
         <div id="list"><div class="empty">Пока нет записей.</div></div>
       </div>
     </div>
-
     <div class="card" style="height: fit-content;">
       <h2>📨 Лог отправки</h2>
       <div id="log" class="log-box"></div>
@@ -165,11 +168,17 @@
 
 <script>
 /* ============================================================
-   1. КЛИЕНТ SUPABASE
+   1. КЛИЕНТ SUPABASE И НАСТРОЙКИ
    ============================================================ */
 const SUPABASE_URL = 'https://zbnsktordbudmuqvmcvs.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_46Kt_R95Ri4W3ZJd0JHNwQ_c_es5diR';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ВАШ EMAIL ДЛЯ УВЕДОМЛЕНИЙ ОБ ОТМЕНЕ
+const MASTER_EMAIL = 'vag.feature.avito@gmail.com'; 
+
+// Ссылка на ваш сайт (GitHub Pages)
+const SITE_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/';
 
 /* ============================================================
    2. ЛОГ
@@ -206,11 +215,9 @@ async function sendEmail({ to, subject, body }) {
       },
       body: JSON.stringify({ to, subject, body })
     });
-
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Ошибка отправки');
-
-    addLog(`✉️ ПИСЬМО → ${to}\n    Тема: ${subject}\n    Текст: ${body}`, 'ok');
+    if (!res.ok) throw new Error(data.error || 'Ошибка');
+    addLog(`✉️ ПИСЬМО → ${to}\n    Тема: ${subject}`, 'ok');
     return { ok: true };
   } catch (err) {
     addLog(`❌ Ошибка отправки на ${to}: ${err.message}`, 'err');
@@ -219,35 +226,46 @@ async function sendEmail({ to, subject, body }) {
 }
 
 /* ============================================================
-   4. ЗАГРУЗКА И СОХРАНЕНИЕ (Supabase)
+   4. HTML-ШАБЛОНЫ ПИСЕМ
+   ============================================================ */
+function getEmailTemplate({ title, color, name, date, time, address, isCancelBtn = false, cancelLink = '', introText = '' }) {
+  return `
+  <div style="font-family: Arial, sans-serif; background: #f4f6f8; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      <div style="background: ${color}; padding: 24px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 22px;">${title}</h1>
+      </div>
+      <div style="padding: 30px; color: #333333; line-height: 1.6;">
+        <p style="font-size: 16px;">Здравствуйте, <b>${name}</b>!</p>
+        <p style="font-size: 16px;">${introText || (title.includes('отменена') ? 'Ваша запись была отменена.' : 'Напоминаем, что вы записаны на диагностику автомобиля.')}</p>
+        
+        <div style="background: #f8fafc; border-left: 4px solid ${color}; padding: 15px; margin: 20px 0; border-radius: 4px;">
+          <p style="margin: 0 0 8px 0;"><b>📅 Дата:</b> ${date}</p>
+          <p style="margin: 0 0 8px 0;"><b>⏰ Время:</b> ${time}</p>
+          ${address ? `<p style="margin: 0;"><b>📍 Адрес:</b> ${address}</p>` : ''}
+        </div>
+
+        ${isCancelBtn ? `
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">Если ваши планы изменились, вы можете отменить запись:</p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${cancelLink}" style="background: #dc2626; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Отменить запись</a>
+          </div>
+        ` : ''}
+      </div>
+      <div style="background: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8;">
+        Это письмо отправлено автоматически. Пожалуйста, не отвечайте на него.
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   5. ЗАГРУЗКА / УДАЛЕНИЕ
    ============================================================ */
 async function loadAll() {
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('*')
-    .order('date', { ascending: true })
-    .order('time', { ascending: true });
-
-  if (error) {
-    addLog(`❌ Ошибка загрузки: ${error.message}`, 'err');
-    return [];
-  }
-
-  return data.map(row => ({
-    id: row.id,
-    name: row.name,
-    phone: row.phone,
-    email: row.email,
-    address: row.address,
-    notes: row.notes,
-    date: row.date,
-    time: row.time.slice(0, 5), // "10:00:00" -> "10:00"
-    reminder_12h_sent: row.reminder_12h_sent,
-    reminder_12h_sent_at: row.reminder_12h_sent_at,
-    reminder_3h_sent: row.reminder_3h_sent,
-    reminder_3h_sent_at: row.reminder_3h_sent_at,
-    createdAt: row.created_at
-  }));
+  const { data, error } = await supabase.from('appointments').select('*').order('date').order('time');
+  if (error) return [];
+  return data.map(row => ({ ...row, time: row.time.slice(0, 5) }));
 }
 
 async function deleteAppointment(id) {
@@ -258,35 +276,17 @@ async function deleteAppointment(id) {
 }
 
 async function markReminderSent(id, field) {
-  const update = {};
-  update[field] = true;
-  update[field + '_at'] = new Date().toISOString();
-
-  const { error } = await supabase.from('appointments').update(update).eq('id', id);
-  if (error) { addLog(`❌ Ошибка обновления статуса: ${error.message}`, 'err'); return false; }
-  return true;
+  const update = {}; update[field] = true; update[field + '_at'] = new Date().toISOString();
+  await supabase.from('appointments').update(update).eq('id', id);
 }
 
 /* ============================================================
-   5. ЛОГИКА НАПОМИНАНИЙ
+   6. НАПОМИНАНИЯ
    ============================================================ */
-function appointmentDate(item) {
-  return new Date(`${item.date}T${item.time}:00`);
-}
-
-function reminder12hTime(item) {
-  return new Date(appointmentDate(item).getTime() - 12 * 60 * 60 * 1000);
-}
-
-function reminder3hTime(item) {
-  return new Date(appointmentDate(item).getTime() - 3 * 60 * 60 * 1000);
-}
-
-// Условие для 12-часового: запись не сегодня
-function shouldHave12hReminder(item) {
-  const today = new Date().toISOString().slice(0, 10);
-  return item.date !== today;
-}
+function appointmentDate(item) { return new Date(`${item.date}T${item.time}:00`); }
+function reminder12hTime(item) { return new Date(appointmentDate(item).getTime() - 12 * 60 * 60 * 1000); }
+function reminder3hTime(item) { return new Date(appointmentDate(item).getTime() - 3 * 60 * 60 * 1000); }
+function formatDateRu(iso) { const [y, m, d] = iso.split('-'); return `${d}.${m}.${y}`; }
 
 async function checkReminders(manual = false) {
   const items = await loadAll();
@@ -294,139 +294,118 @@ async function checkReminders(manual = false) {
   let sentCount = 0;
 
   for (const it of items) {
-    const apptDate = appointmentDate(it);
+    if (appointmentDate(it) < now) continue;
 
-    // Пропускаем прошедшие записи
-    if (apptDate < now) continue;
+    const cancelLink = `${SITE_URL}?cancel=${it.id}`;
 
-    // --- 12-часовое напоминание ---
-    if (shouldHave12hReminder(it) && !it.reminder_12h_sent) {
+    // 12 часов
+    if (it.date !== new Date().toISOString().slice(0,10) && !it.reminder_12h_sent) {
       if (reminder12hTime(it) <= now) {
-        const result = await sendEmail({
-          to: it.email,
-          subject: 'Напоминание: диагностика автомобиля завтра',
-          body: `Здравствуйте, ${it.name}! Напоминаем, что вы записаны на диагностику ${formatDateRu(it.date)} в ${it.time}.${it.address ? ` Адрес: ${it.address}.` : ''}`
+        const html = getEmailTemplate({
+          title: 'Напоминание за 12 часов', color: '#2563eb', name: it.name,
+          date: formatDateRu(it.date), time: it.time, address: it.address,
+          isCancelBtn: true, cancelLink
         });
-        if (result.ok) {
-          await markReminderSent(it.id, 'reminder_12h_sent');
-          sentCount++;
+        if ((await sendEmail({ to: it.email, subject: 'Напоминание: диагностика завтра', body: html })).ok) {
+          await markReminderSent(it.id, 'reminder_12h_sent'); sentCount++;
         }
       }
     }
 
-    // --- 3-часовое напоминание (без условия «не сегодня») ---
+    // 3 часа
     if (!it.reminder_3h_sent) {
       if (reminder3hTime(it) <= now) {
-        const result = await sendEmail({
-          to: it.email,
-          subject: 'Напоминание: диагностика автомобиля через 3 часа',
-          body: `Здравствуйте, ${it.name}! Напоминаем, что через 3 часа у вас диагностика в ${it.time}.${it.address ? ` Адрес: ${it.address}.` : ''}`
+        const html = getEmailTemplate({
+          title: 'Напоминание за 3 часа', color: '#d97706', name: it.name,
+          date: formatDateRu(it.date), time: it.time, address: it.address,
+          isCancelBtn: true, cancelLink
         });
-        if (result.ok) {
-          await markReminderSent(it.id, 'reminder_3h_sent');
-          sentCount++;
+        if ((await sendEmail({ to: it.email, subject: 'Напоминание: диагностика через 3 часа', body: html })).ok) {
+          await markReminderSent(it.id, 'reminder_3h_sent'); sentCount++;
         }
       }
     }
   }
-
-  if (sentCount > 0) {
-    addLog(`✅ Обработано напоминаний: ${sentCount}`, 'ok');
-  } else if (manual) {
-    addLog('ℹ️ Проверка выполнена: напоминаний к отправке нет.', '');
-  }
-
+  if (sentCount > 0) addLog(`✅ Обработано напоминаний: ${sentCount}`, 'ok');
+  else if (manual) addLog('ℹ️ Напоминаний к отправке нет.', '');
   await renderList();
 }
 
-function formatDateRu(iso) {
-  const [y, m, d] = iso.split('-');
-  return `${d}.${m}.${y}`;
-}
-
 /* ============================================================
-   6. ОТРИСОВКА СПИСКА
+   7. ОТРИСОВКА ТАБЛИЦЫ
    ============================================================ */
 async function renderList() {
   const items = await loadAll();
   const el = document.getElementById('list');
-  if (items.length === 0) {
-    el.innerHTML = '<div class="empty">Пока нет записей.</div>';
-    return;
-  }
+  if (!items.length) { el.innerHTML = '<div class="empty">Пока нет записей.</div>'; return; }
 
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
 
   el.innerHTML = `<table>
-    <thead><tr>
-      <th>Клиент</th>
-      <th>Когда</th>
-      <th>Заметка мастера</th>
-      <th>Напоминания</th>
-      <th></th>
-    </tr></thead>
+    <thead><tr><th>Клиент</th><th>Когда</th><th>Заметка мастера</th><th>Напоминания</th><th></th></tr></thead>
     <tbody>
     ${items.map(it => {
-      // Бейдж для 12h
-      let badge12;
-      if (it.date === todayStr) {
-        badge12 = '<span class="badge badge-today">12ч: сегодня — без напоминания</span>';
-      } else if (it.reminder_12h_sent) {
-        badge12 = '<span class="badge badge-sent">12ч: отправлено</span>';
-      } else {
-        const rt = reminder12hTime(it);
-        badge12 = `<span class="badge badge-pending">12ч: ${rt <= now ? 'готово' : 'через ' + humanDiff(rt - now)}</span>`;
-      }
-
-      // Бейдж для 3h
-      let badge3;
-      if (it.reminder_3h_sent) {
-        badge3 = '<span class="badge badge-sent">3ч: отправлено</span>';
-      } else {
-        const rt = reminder3hTime(it);
-        badge3 = `<span class="badge badge-pending">3ч: ${rt <= now ? 'готово' : 'через ' + humanDiff(rt - now)}</span>`;
-      }
-
-      const noteHtml = it.notes
-        ? `<div class="note-cell">${escapeHtml(it.notes)}</div>`
-        : `<span class="note-empty">—</span>`;
+      let b12 = it.date === todayStr ? '<span class="badge badge-today">12ч: сегодня — нет</span>' : 
+                it.reminder_12h_sent ? '<span class="badge badge-sent">12ч: отправлено</span>' : 
+                `<span class="badge badge-pending">12ч: ${reminder12hTime(it) <= now ? 'готово' : 'через ' + humanDiff(reminder12hTime(it) - now)}</span>`;
+      let b3 = it.reminder_3h_sent ? '<span class="badge badge-sent">3ч: отправлено</span>' : 
+               `<span class="badge badge-pending">3ч: ${reminder3hTime(it) <= now ? 'готово' : 'через ' + humanDiff(reminder3hTime(it) - now)}</span>`;
 
       return `<tr>
-        <td>
-          <div class="cell-name">${escapeHtml(it.name)}</div>
-          <div class="cell-sub">${escapeHtml(it.phone)}</div>
-          <div class="cell-sub">${escapeHtml(it.email)}</div>
-          ${it.address ? `<div class="cell-sub">📍 ${escapeHtml(it.address)}</div>` : ''}
-        </td>
+        <td><div class="cell-name">${escapeHtml(it.name)}</div><div class="cell-sub">${escapeHtml(it.phone)}</div><div class="cell-sub">${escapeHtml(it.email)}</div>${it.address ? `<div class="cell-sub">📍 ${escapeHtml(it.address)}</div>` : ''}</td>
         <td>${escapeHtml(it.date)}<br>${escapeHtml(it.time)}</td>
-        <td>${noteHtml}</td>
-        <td>${badge12}<br>${badge3}</td>
+        <td>${it.notes ? `<div class="note-cell">${escapeHtml(it.notes)}</div>` : '<span class="note-empty">—</span>'}</td>
+        <td>${b12}<br>${b3}</td>
         <td><button class="btn-small btn-danger" onclick="removeItem('${it.id}')">Удалить</button></td>
       </tr>`;
     }).join('')}
     </tbody></table>`;
 }
+function humanDiff(ms) { if (ms <= 0) return '0 мин'; const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); return h > 0 ? `${h} ч ${m} мин` : `${m} мин`; }
+async function removeItem(id) { if (await deleteAppointment(id)) await renderList(); }
 
-function humanDiff(ms) {
-  if (ms <= 0) return '0 мин';
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  return h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
-}
+/* ============================================================
+   8. ОБРАБОТКА ОТМЕНЫ (КЛИЕНТ НАЖАЛ КНОПКУ)
+   ============================================================ */
+async function handleCancellation(cancelId) {
+  document.getElementById('cancel-screen').style.display = 'flex';
 
-async function removeItem(id) {
-  if (await deleteAppointment(id)) {
-    await renderList();
+  // 1. Ищем запись
+  const { data: rows } = await supabase.from('appointments').select('*').eq('id', cancelId);
+  
+  if (rows && rows.length > 0) {
+    const appt = rows[0];
+    
+    // 2. Удаляем из базы
+    const deleted = await deleteAppointment(cancelId);
+    
+    if (deleted) {
+      // 3. Отправляем письмо ВАМ (мастеру)
+      const masterHtml = getEmailTemplate({
+        title: 'Запись отменена клиентом', 
+        color: '#dc2626', 
+        name: 'Мастер',
+        date: formatDateRu(appt.date), 
+        time: appt.time.slice(0,5), 
+        address: appt.address,
+        introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.<br><br>Телефон: ${escapeHtml(appt.phone)}<br>Email: ${escapeHtml(appt.email)}`
+      });
+      
+      await sendEmail({
+        to: MASTER_EMAIL,
+        subject: `❌ Отмена: ${appt.name} (${formatDateRu(appt.date)})`,
+        body: masterHtml
+      });
+    }
   }
 }
 
 /* ============================================================
-   7. ФОРМА
+   9. ФОРМА ДОБАВЛЕНИЯ
    ============================================================ */
 document.getElementById('form').addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const item = {
     name: document.getElementById('name').value.trim(),
     phone: document.getElementById('phone').value.trim(),
@@ -435,57 +414,54 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     notes: document.getElementById('notes').value.trim(),
     date: document.getElementById('date').value,
     time: document.getElementById('time').value,
-    reminder_12h_sent: false,
-    reminder_3h_sent: false
+    reminder_12h_sent: false, reminder_3h_sent: false
   };
-
   if (!item.name || !item.email || !item.date || !item.time) return;
 
-  const { error } = await supabase.from('appointments').insert([item]);
-  if (error) {
-    addLog(`❌ Ошибка сохранения: ${error.message}`, 'err');
-    return;
-  }
+  const { data, error } = await supabase.from('appointments').insert([item]).select();
+  if (error) { addLog(`❌ Ошибка: ${error.message}`, 'err'); return; }
+  
+  const newId = data[0].id;
+  addLog(`➕ Новая запись: ${item.name}`, 'ok');
 
-  addLog(`➕ Новая запись: ${item.name} — ${formatDateRu(item.date)} ${item.time}`, 'ok');
-
-  // Подтверждение клиенту
-  await sendEmail({
-    to: item.email,
-    subject: 'Вы записаны на диагностику',
-    body: `Здравствуйте, ${item.name}! Вы записаны на диагностику ${formatDateRu(item.date)} в ${item.time}.${item.address ? ` Адрес: ${item.address}.` : ''}`
+  const cancelLink = `${SITE_URL}?cancel=${newId}`;
+  const html = getEmailTemplate({
+    title: 'Вы записаны на диагностику', color: '#2563eb', name: item.name,
+    date: formatDateRu(item.date), time: item.time, address: item.address,
+    isCancelBtn: true, cancelLink
   });
+  
+  await sendEmail({ to: item.email, subject: 'Запись на диагностику создана', body: html });
 
   e.target.reset();
-  // Ставим завтрашнюю дату по умолчанию
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('date').value = tomorrow.toISOString().slice(0, 10);
+  document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   document.getElementById('time').value = '10:00';
-
-  await renderList();
-  checkReminders();
+  await renderList(); checkReminders();
 });
 
 /* ============================================================
-   8. ИНИЦИАЛИЗАЦИЯ
+   10. ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКА URL
    ============================================================ */
 (async () => {
   renderLog();
-
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('date').value = tomorrow.toISOString().slice(0, 10);
+  
+  // Ставим дату по умолчанию
+  document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   document.getElementById('time').value = '10:00';
 
-  await renderList();
-  addLog('🚀 Подключено к Supabase.', '');
+  // Проверяем, не пришёл ли клиент по ссылке отмены
+  const urlParams = new URLSearchParams(window.location.search);
+  const cancelId = urlParams.get('cancel');
 
-  // Проверка напоминаний при загрузке и далее раз в минуту
-  checkReminders();
-  setInterval(() => checkReminders(false), 60 * 1000);
+  if (cancelId) {
+    await handleCancellation(cancelId);
+  } else {
+    await renderList();
+    addLog('🚀 Подключено к Supabase.', '');
+    checkReminders();
+    setInterval(() => checkReminders(false), 60 * 1000);
+  }
 })();
 </script>
-
 </body>
 </html>
