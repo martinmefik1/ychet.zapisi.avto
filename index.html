@@ -37,20 +37,6 @@
 
     .app { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
 
-    /* БАННЕР УВЕДОМЛЕНИЙ */
-    #notif-banner {
-      background: linear-gradient(90deg, #f59e0b, #ef4444);
-      color: #fff; padding: 12px 20px; border-radius: 12px;
-      display: none; justify-content: space-between; align-items: center;
-      margin-bottom: 24px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-      animation: slideDown 0.5s ease; flex-wrap: wrap; gap: 10px;
-    }
-    @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    #notif-banner p { font-size: 0.9rem; font-weight: 500; margin: 0; }
-    #notif-banner button { background: #fff; color: #ef4444; padding: 8px 16px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 0.85rem; }
-    #notif-banner button:hover { background: #fee2e2; }
-
-    /* ШАПКА */
     .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px; color: #fff; }
     .site-logo { height: 45px; width: auto; object-fit: contain; border-radius: 8px; }
@@ -63,15 +49,18 @@
     .brand-sub { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; }
     @keyframes rgbShift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-    .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     
-    /* Кнопка включения уведомлений */
+    /* Кнопка уведомлений */
     .btn-notify {
-      background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn);
-      padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
-      display: none; align-items: center; gap: 6px; cursor: pointer; animation: pulse 2s infinite;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s; white-space: nowrap;
     }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+    .btn-notify.btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); animation: pulse 2s infinite; }
+    .btn-notify.btn-ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+    .btn-notify.btn-err { background: var(--err-bg); color: var(--err); border-color: var(--err); }
+    
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
 
     .badge-cloud { font-size: 0.8rem; font-weight: 600; background: var(--ok-bg); color: var(--ok); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--ok); box-shadow: 0 0 15px var(--ok-bg); }
 
@@ -205,23 +194,18 @@
     </div>
   </div>
 
+  <!-- ИСПРАВЛЕННЫЙ ЭКРАН ПОДТВЕРЖДЕНИЯ -->
   <div id="confirm-screen">
     <div class="cancel-content">
       <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
       <div class="confirm-title">Визит подтвержден!</div>
-      <div class="cancel-text">Спасибо! Мы получили ваше подтверждение.<br>Ждем вас на диагностике в назначенное время.<br><br><span style="font-size: 0.9rem; opacity: 0.7;">Вы можете закрыть эту вкладку.</span></div>
+      <div class="cancel-text">Спасибо! Мы получили ваше подтверждение.<br>Мастер уже уведомлен.<br><br><span style="font-size: 0.9rem; opacity: 0.7;">Вы можете закрыть эту вкладку.</span></div>
     </div>
   </div>
 
   <div id="toast-container"></div>
 
   <div class="app">
-    <!-- Баннер для запроса уведомлений -->
-    <div id="notif-banner">
-      <p>⚠️ Уведомления отключены. Вы не узнаете, если клиент отменит или подтвердит запись.</p>
-      <button onclick="requestNotifPermission()">Включить уведомления</button>
-    </div>
-
     <div class="header">
       <h1>
         <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="site-logo">
@@ -231,7 +215,9 @@
         </div>
       </h1>
       <div class="header-controls">
-        <button class="btn-notify" id="notify-btn" onclick="requestNotifPermission()">🔔 Включить уведомления</button>
+        <!-- Кнопка уведомлений всегда на виду -->
+        <button class="btn-notify" id="notify-btn" onclick="requestNotifPermission()">🔔 Проверка...</button>
+        
         <label class="toggle-container">
           <input type="checkbox" id="rgb-toggle" onchange="toggleRGB(this)">
           <span class="toggle-switch"></span> 🌈 RGB
@@ -335,30 +321,54 @@
       setTimeout(() => { t.style.animation = 'slideIn 0.3s ease reverse forwards'; setTimeout(() => t.remove(), 300); }, 3500);
     }
 
-    /* ЛОГИКА УВЕДОМЛЕНИЙ */
+    /* УВЕДОМЛЕНИЯ */
     function checkNotificationStatus() {
-      if (!("Notification" in window)) return;
-      
-      const banner = document.getElementById('notif-banner');
       const btn = document.getElementById('notify-btn');
+      
+      // Проверка на iOS (Safari)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+      if (!("Notification" in window)) {
+        btn.className = 'btn-notify btn-err';
+        btn.innerHTML = '🚫 Нет поддержки';
+        return;
+      }
 
       if (Notification.permission === "granted") {
-        banner.style.display = 'none';
-        btn.style.display = 'none';
+        btn.className = 'btn-notify btn-ok';
+        btn.innerHTML = '🔔 Уведомления вкл';
       } else if (Notification.permission === "denied") {
-        btn.style.display = 'none';
-        banner.style.display = 'flex';
-        banner.innerHTML = `<p>🚫 Вы заблокировали уведомления. Чтобы их включить, нажмите на замочек (или настройки) рядом с адресом сайта в браузере и разрешите уведомления.</p>`;
+        btn.className = 'btn-notify btn-err';
+        btn.innerHTML = '🚫 Заблокированы';
       } else {
-        // Если default (еще не спрашивали)
-        btn.style.display = 'flex';
-        banner.style.display = 'none'; // Не показываем баннер сразу, пусть просто мигает кнопка
+        btn.className = 'btn-notify btn-warn';
+        btn.innerHTML = '🔔 Включить уведомления';
       }
     }
 
     async function requestNotifPermission() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+      // Особая логика для iOS
+      if (isIOS && !isStandalone) {
+        alert('На iPhone уведомления работают ТОЛЬКО если добавить сайт на экран "Домой".\n\n1. Нажмите кнопку "Поделиться" (квадрат со стрелкой вверх) в Safari.\n2. Выберите "На экран Домой".\n3. Откройте сайт с иконки на рабочем столе и нажмите эту кнопку там.');
+        return;
+      }
+
       if (!("Notification" in window)) {
         showToast('Ваш браузер не поддерживает уведомления', 'error');
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        showToast('Уведомления уже включены!', 'success');
+        return;
+      }
+
+      if (Notification.permission === "denied") {
+        alert('Вы ранее заблокировали уведомления. Чтобы их включить, нажмите на замочек 🔒 (или значок настроек) рядом с адресом сайта в браузере и выберите "Разрешить уведомления".');
         return;
       }
 
@@ -824,7 +834,6 @@
         const appt = rows[0];
         await db.from('appointments').update({ is_confirmed: true }).eq('id', confirmId);
         
-        // Пытаемся отправить Push, если разрешено
         if ("Notification" in window && Notification.permission === "granted") {
           try {
             new Notification("✅ Клиент подтвердил визит!", { 
@@ -899,7 +908,7 @@
 
     /* ИНИЦИАЛИЗАЦИЯ */
     (async () => {
-      // Проверяем статус уведомлений при загрузке
+      // Устанавливаем статус кнопки уведомлений
       checkNotificationStatus();
 
       if (localStorage.getItem('rgb_mode') === 'true') { document.getElementById('rgb-toggle').checked = true; toggleRGB(document.getElementById('rgb-toggle')); }
