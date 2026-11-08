@@ -4,170 +4,98 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Запись на диагностику — автосервис</title>
+<!-- Подключаем Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #f0f4f8;
-    --card: #ffffff;
-    --accent: #2563eb;
-    --accent-soft: #dbeafe;
-    --ok: #16a34a;
-    --ok-soft: #dcfce7;
-    --warn: #d97706;
-    --warn-soft: #fef3c7;
-    --err: #dc2626;
-    --err-soft: #fee2e2;
-    --border: #e2e8f0;
-    --text: #0f172a;
-    --text-muted: #64748b;
+    --bg: #f0f4f8; --card: #ffffff; --accent: #2563eb; --accent-soft: #dbeafe;
+    --ok: #16a34a; --ok-soft: #dcfce7; --warn: #d97706; --warn-soft: #fef3c7;
+    --err: #dc2626; --err-soft: #fee2e2; --border: #e2e8f0;
+    --text: #0f172a; --text-muted: #64748b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 32px 20px;
-    line-height: 1.5;
+    background: var(--bg); color: var(--text); padding: 32px 20px; line-height: 1.5;
   }
-
   .app { max-width: 1300px; margin: 0 auto; }
-
-  /* Шапка */
   .header {
     display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 16px;
-    margin-bottom: 28px;
-    padding: 0 4px;
+    flex-wrap: wrap; gap: 16px; margin-bottom: 28px; padding: 0 4px;
   }
-  .header h1 {
-    font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em;
+  .header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+  .badge-cloud {
+    font-size: 0.75rem; font-weight: 600; background: var(--ok-soft);
+    color: var(--ok); padding: 4px 12px; border-radius: 999px;
   }
-  .header .badge-local {
-    font-size: 0.75rem; font-weight: 600;
-    background: var(--accent-soft); color: var(--accent);
-    padding: 4px 12px; border-radius: 999px;
-  }
-
-  /* Сетка */
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  @media (max-width: 960px) {
-    .grid { grid-template-columns: 1fr; }
-  }
-
-  /* Карточки */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
     transition: box-shadow 0.2s;
   }
-  .card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.05);
-  }
+  .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.05); }
   .card h2 {
-    font-size: 1.1rem; font-weight: 700;
-    margin-bottom: 20px; padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
   }
-
-  /* Поля формы */
-  label {
-    display: block;
-    font-size: 0.82rem; font-weight: 600;
-    color: #334155;
-    margin: 14px 0 5px;
-  }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin: 14px 0 5px; }
   input, textarea {
-    width: 100%;
-    padding: 10px 13px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-family: inherit;
-    background: #f8fafc;
+    width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.95rem; font-family: inherit; background: #f8fafc;
     transition: border-color 0.15s, background 0.15s;
   }
   input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: #ffffff;
+    outline: none; border-color: var(--accent); background: #ffffff;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   }
   textarea { resize: vertical; min-height: 70px; }
-
   .row { display: flex; gap: 14px; }
   .row > div { flex: 1; }
-
-  /* Кнопки */
   button { cursor: pointer; border: none; border-radius: 10px; font-family: inherit; font-weight: 600; }
   .btn-primary {
-    width: 100%; margin-top: 22px; padding: 13px 20px;
-    background: var(--accent); color: #fff; font-size: 0.98rem;
-    transition: background 0.15s, transform 0.1s;
+    width: 100%; margin-top: 22px; padding: 13px 20px; background: var(--accent);
+    color: #fff; font-size: 0.98rem; transition: background 0.15s, transform 0.1s;
   }
   .btn-primary:hover { background: #1d4ed8; }
   .btn-primary:active { transform: scale(0.985); }
-
   .btn-small {
-    padding: 6px 12px; font-size: 0.8rem;
-    background: #e2e8f0; color: var(--text);
+    padding: 6px 12px; font-size: 0.8rem; background: #e2e8f0; color: var(--text);
     transition: background 0.15s;
   }
   .btn-small:hover { background: #cbd5e1; }
   .btn-danger { background: var(--err-soft); color: var(--err); }
   .btn-danger:hover { background: #fecaca; }
-
-  /* Таблица */
   table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
   th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { color: var(--text-muted); font-weight: 600; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
-
   .cell-name { font-weight: 700; }
   .cell-sub { color: var(--text-muted); font-size: 0.8rem; }
   .note-cell {
-    background: #fefce8; border-radius: 8px; padding: 6px 10px;
-    font-size: 0.8rem; color: #854d0e;
-    border-left: 3px solid #eab308;
+    background: #fefce8; border-radius: 8px; padding: 6px 10px; font-size: 0.8rem;
+    color: #854d0e; border-left: 3px solid #eab308;
   }
   .note-empty { color: #cbd5e1; font-size: 0.8rem; font-style: italic; }
-
-  /* Бейджи */
   .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; }
   .badge-sent { background: var(--ok-soft); color: var(--ok); }
   .badge-pending { background: var(--warn-soft); color: var(--warn); }
   .badge-today { background: var(--accent-soft); color: var(--accent); }
   .badge-none { background: #f1f5f9; color: #94a3b8; }
-
-  /* Лог */
   .log-box {
-    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
-    font-size: 0.76rem; background: #0f172a; color: #e2e8f0;
-    border-radius: 12px; padding: 16px; height: 380px;
-    overflow-y: auto; white-space: pre-wrap; word-break: break-word;
-    line-height: 1.6;
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 0.76rem;
+    background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 16px; height: 380px;
+    overflow-y: auto; white-space: pre-wrap; word-break: break-word; line-height: 1.6;
   }
   .log-box .t { color: #64748b; }
   .log-box .ok { color: #4ade80; }
   .log-box .warn { color: #fbbf24; }
   .log-box .err { color: #f87171; }
-
   .empty { color: #94a3b8; font-size: 0.86rem; padding: 16px 0; text-align: center; }
-
   .hint {
-    font-size: 0.78rem; color: var(--text-muted);
-    margin-top: 12px; line-height: 1.5;
-    background: #f8fafc; padding: 10px 14px;
-    border-radius: 8px; border-left: 3px solid var(--border);
+    font-size: 0.78rem; color: var(--text-muted); margin-top: 12px; line-height: 1.5;
+    background: #f8fafc; padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--border);
   }
-
-  /* Скроллбар */
   .log-box::-webkit-scrollbar { width: 6px; }
   .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 </style>
@@ -177,14 +105,11 @@
 <div class="app">
   <div class="header">
     <h1>🚗 Запись на диагностику</h1>
-    <span class="badge-local">Локальный режим</span>
+    <span class="badge-cloud">☁️ Supabase подключён</span>
   </div>
 
   <div class="grid">
-
-    <!-- ЛЕВАЯ КОЛОНКА: форма + список -->
     <div style="display: flex; flex-direction: column; gap: 24px;">
-
       <div class="card">
         <h2>➕ Новая запись</h2>
         <form id="form">
@@ -212,13 +137,12 @@
           </div>
 
           <label for="notes">📝 Заметки для мастера (клиент не видит)</label>
-          <textarea id="notes" placeholder="Например: клиент жалуется на стук в подвеске, проверить стойки стабилизатора..."></textarea>
+          <textarea id="notes" placeholder="Например: клиент жалуется на стук в подвеске..."></textarea>
 
           <button class="btn-primary" type="submit">Сохранить запись</button>
         </form>
         <div class="hint">
-          Поля «Адрес» и «Заметки для мастера» не попадают в письмо клиенту — они только для вас.
-          Если запись на сегодня, напоминание за 12 ч не создаётся.
+          Напоминания уходят за <b>12 часов</b> (если запись не сегодня) и за <b>3 часа</b> до визита.
         </div>
       </div>
 
@@ -226,55 +150,35 @@
         <h2>📋 Все записи</h2>
         <div id="list"><div class="empty">Пока нет записей.</div></div>
       </div>
-
     </div>
 
-    <!-- ПРАВАЯ КОЛОНКА: лог -->
     <div class="card" style="height: fit-content;">
-      <h2>📨 Лог отправки писем</h2>
+      <h2>📨 Лог отправки</h2>
       <div id="log" class="log-box"></div>
       <div style="display: flex; gap: 10px; margin-top: 14px;">
         <button class="btn-small" onclick="clearLog()">Очистить лог</button>
         <button class="btn-small" onclick="checkReminders(true)">Проверить напоминания</button>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
 /* ============================================================
-   1. ХРАНИЛИЩЕ (localStorage — потом заменим на Supabase)
+   1. КЛИЕНТ SUPABASE
    ============================================================ */
-const STORE_KEY = 'auto_diag_v2';
-const LOG_KEY   = 'auto_diag_log_v2';
-
-function loadAll() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
-  catch { return []; }
-}
-function saveAll(items) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(items));
-}
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
+const SUPABASE_URL = 'https://zbnsktordbudmuqvmcvs.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_46Kt_R95Ri4W3ZJd0JHNwQ_c_es5diR';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ============================================================
    2. ЛОГ
    ============================================================ */
 let logLines = [];
-function loadLog() {
-  try { logLines = JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
-  catch { logLines = []; }
-}
-function saveLog() { localStorage.setItem(LOG_KEY, JSON.stringify(logLines.slice(-300))); }
-
 function addLog(text, type = '') {
   const time = new Date().toLocaleTimeString('ru-RU');
   logLines.push({ time, text, type });
   if (logLines.length > 300) logLines = logLines.slice(-300);
-  saveLog();
   renderLog();
 }
 function renderLog() {
@@ -284,46 +188,167 @@ function renderLog() {
   ).join('\n');
   el.scrollTop = el.scrollHeight;
 }
-function clearLog() { logLines = []; saveLog(); renderLog(); }
+function clearLog() { logLines = []; renderLog(); }
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* ============================================================
-   3. ОТПРАВКА ПИСЬМА — заглушка
-   ПОЗЖЕ: заменить на вызов Supabase Edge Function
+   3. ОТПРАВКА ПИСЬМА ЧЕРЕЗ EDGE FUNCTION
    ============================================================ */
 async function sendEmail({ to, subject, body }) {
-  await new Promise(r => setTimeout(r, 120));
-  addLog(`✉️ ПИСЬМО → ${to}\n    Тема: ${subject}\n    Текст: ${body}`, 'ok');
-  return { ok: true, simulated: true };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({ to, subject, body })
+    });
 
-  /* БУДУЩАЯ РЕАЛЬНАЯ ВЕРСИЯ:
-  const res = await fetch('https://<PROJECT_REF>.supabase.co/functions/v1/send-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer <ANON_KEY>' },
-    body: JSON.stringify({ to, subject, body })
-  });
-  return await res.json();
-  */
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Ошибка отправки');
+
+    addLog(`✉️ ПИСЬМО → ${to}\n    Тема: ${subject}\n    Текст: ${body}`, 'ok');
+    return { ok: true };
+  } catch (err) {
+    addLog(`❌ Ошибка отправки на ${to}: ${err.message}`, 'err');
+    return { ok: false, error: err.message };
+  }
 }
 
 /* ============================================================
-   4. ЛОГИКА ЗАПИСЕЙ И НАПОМИНАНИЙ
+   4. ЗАГРУЗКА И СОХРАНЕНИЕ (Supabase)
+   ============================================================ */
+async function loadAll() {
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .order('date', { ascending: true })
+    .order('time', { ascending: true });
+
+  if (error) {
+    addLog(`❌ Ошибка загрузки: ${error.message}`, 'err');
+    return [];
+  }
+
+  return data.map(row => ({
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    email: row.email,
+    address: row.address,
+    notes: row.notes,
+    date: row.date,
+    time: row.time.slice(0, 5), // "10:00:00" -> "10:00"
+    reminder_12h_sent: row.reminder_12h_sent,
+    reminder_12h_sent_at: row.reminder_12h_sent_at,
+    reminder_3h_sent: row.reminder_3h_sent,
+    reminder_3h_sent_at: row.reminder_3h_sent_at,
+    createdAt: row.created_at
+  }));
+}
+
+async function deleteAppointment(id) {
+  const { error } = await supabase.from('appointments').delete().eq('id', id);
+  if (error) { addLog(`❌ Ошибка удаления: ${error.message}`, 'err'); return false; }
+  addLog(`🗑️ Запись удалена (id: ${id})`, 'warn');
+  return true;
+}
+
+async function markReminderSent(id, field) {
+  const update = {};
+  update[field] = true;
+  update[field + '_at'] = new Date().toISOString();
+
+  const { error } = await supabase.from('appointments').update(update).eq('id', id);
+  if (error) { addLog(`❌ Ошибка обновления статуса: ${error.message}`, 'err'); return false; }
+  return true;
+}
+
+/* ============================================================
+   5. ЛОГИКА НАПОМИНАНИЙ
    ============================================================ */
 function appointmentDate(item) {
   return new Date(`${item.date}T${item.time}:00`);
 }
-function reminderTime(item) {
+
+function reminder12hTime(item) {
   return new Date(appointmentDate(item).getTime() - 12 * 60 * 60 * 1000);
 }
-function shouldHaveReminder(item) {
+
+function reminder3hTime(item) {
+  return new Date(appointmentDate(item).getTime() - 3 * 60 * 60 * 1000);
+}
+
+// Условие для 12-часового: запись не сегодня
+function shouldHave12hReminder(item) {
   const today = new Date().toISOString().slice(0, 10);
   return item.date !== today;
 }
 
-function renderList() {
-  const items = loadAll().sort((a, b) => appointmentDate(a) - appointmentDate(b));
+async function checkReminders(manual = false) {
+  const items = await loadAll();
+  const now = new Date();
+  let sentCount = 0;
+
+  for (const it of items) {
+    const apptDate = appointmentDate(it);
+
+    // Пропускаем прошедшие записи
+    if (apptDate < now) continue;
+
+    // --- 12-часовое напоминание ---
+    if (shouldHave12hReminder(it) && !it.reminder_12h_sent) {
+      if (reminder12hTime(it) <= now) {
+        const result = await sendEmail({
+          to: it.email,
+          subject: 'Напоминание: диагностика автомобиля завтра',
+          body: `Здравствуйте, ${it.name}! Напоминаем, что вы записаны на диагностику ${formatDateRu(it.date)} в ${it.time}.${it.address ? ` Адрес: ${it.address}.` : ''}`
+        });
+        if (result.ok) {
+          await markReminderSent(it.id, 'reminder_12h_sent');
+          sentCount++;
+        }
+      }
+    }
+
+    // --- 3-часовое напоминание (без условия «не сегодня») ---
+    if (!it.reminder_3h_sent) {
+      if (reminder3hTime(it) <= now) {
+        const result = await sendEmail({
+          to: it.email,
+          subject: 'Напоминание: диагностика автомобиля через 3 часа',
+          body: `Здравствуйте, ${it.name}! Напоминаем, что через 3 часа у вас диагностика в ${it.time}.${it.address ? ` Адрес: ${it.address}.` : ''}`
+        });
+        if (result.ok) {
+          await markReminderSent(it.id, 'reminder_3h_sent');
+          sentCount++;
+        }
+      }
+    }
+  }
+
+  if (sentCount > 0) {
+    addLog(`✅ Обработано напоминаний: ${sentCount}`, 'ok');
+  } else if (manual) {
+    addLog('ℹ️ Проверка выполнена: напоминаний к отправке нет.', '');
+  }
+
+  await renderList();
+}
+
+function formatDateRu(iso) {
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+/* ============================================================
+   6. ОТРИСОВКА СПИСКА
+   ============================================================ */
+async function renderList() {
+  const items = await loadAll();
   const el = document.getElementById('list');
   if (items.length === 0) {
     el.innerHTML = '<div class="empty">Пока нет записей.</div>';
@@ -338,20 +363,29 @@ function renderList() {
       <th>Клиент</th>
       <th>Когда</th>
       <th>Заметка мастера</th>
-      <th>Напоминание</th>
+      <th>Напоминания</th>
       <th></th>
     </tr></thead>
     <tbody>
     ${items.map(it => {
-      let reminderBadge;
+      // Бейдж для 12h
+      let badge12;
       if (it.date === todayStr) {
-        reminderBadge = '<span class="badge badge-today">сегодня — без напоминания</span>';
-      } else if (it.reminderSent) {
-        reminderBadge = '<span class="badge badge-sent">отправлено</span>';
+        badge12 = '<span class="badge badge-today">12ч: сегодня — без напоминания</span>';
+      } else if (it.reminder_12h_sent) {
+        badge12 = '<span class="badge badge-sent">12ч: отправлено</span>';
       } else {
-        const rt = reminderTime(it);
-        const when = rt <= now ? 'готово' : 'через ' + humanDiff(rt - now);
-        reminderBadge = `<span class="badge badge-pending">${when}</span>`;
+        const rt = reminder12hTime(it);
+        badge12 = `<span class="badge badge-pending">12ч: ${rt <= now ? 'готово' : 'через ' + humanDiff(rt - now)}</span>`;
+      }
+
+      // Бейдж для 3h
+      let badge3;
+      if (it.reminder_3h_sent) {
+        badge3 = '<span class="badge badge-sent">3ч: отправлено</span>';
+      } else {
+        const rt = reminder3hTime(it);
+        badge3 = `<span class="badge badge-pending">3ч: ${rt <= now ? 'готово' : 'через ' + humanDiff(rt - now)}</span>`;
       }
 
       const noteHtml = it.notes
@@ -367,7 +401,7 @@ function renderList() {
         </td>
         <td>${escapeHtml(it.date)}<br>${escapeHtml(it.time)}</td>
         <td>${noteHtml}</td>
-        <td>${reminderBadge}</td>
+        <td>${badge12}<br>${badge3}</td>
         <td><button class="btn-small btn-danger" onclick="removeItem('${it.id}')">Удалить</button></td>
       </tr>`;
     }).join('')}
@@ -381,66 +415,19 @@ function humanDiff(ms) {
   return h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
 }
 
-function removeItem(id) {
-  saveAll(loadAll().filter(x => x.id !== id));
-  addLog(`🗑️ Запись удалена (id: ${id})`, 'warn');
-  renderList();
-}
-
-/* ============================================================
-   5. ПРОВЕРКА НАПОМИНАНИЙ
-   ============================================================ */
-let checking = false;
-async function checkReminders(manual = false) {
-  if (checking) return;
-  checking = true;
-  try {
-    const items = loadAll();
-    const now = new Date();
-    let sentCount = 0;
-
-    for (const it of items) {
-      if (!shouldHaveReminder(it)) continue;
-      if (it.reminderSent) continue;
-      if (reminderTime(it) > now) continue;
-      if (appointmentDate(it) < now) continue;
-
-      await sendEmail({
-        to: it.email,
-        subject: 'Напоминание: диагностика автомобиля',
-        body: `Здравствуйте, ${it.name}! Напоминаем, что вы записаны на диагностику ${formatDateRu(it.date)} в ${it.time}.${it.address ? ` Адрес: ${it.address}.` : ''}`
-      });
-
-      it.reminderSent = true;
-      it.reminderSentAt = new Date().toISOString();
-      sentCount++;
-    }
-
-    if (sentCount > 0) {
-      saveAll(items);
-      addLog(`✅ Обработано напоминаний: ${sentCount}`, 'ok');
-    } else if (manual) {
-      addLog('ℹ️ Проверка выполнена: напоминаний к отправке нет.', '');
-    }
-    renderList();
-  } finally {
-    checking = false;
+async function removeItem(id) {
+  if (await deleteAppointment(id)) {
+    await renderList();
   }
 }
 
-function formatDateRu(iso) {
-  const [y, m, d] = iso.split('-');
-  return `${d}.${m}.${y}`;
-}
-
 /* ============================================================
-   6. ФОРМА
+   7. ФОРМА
    ============================================================ */
 document.getElementById('form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const item = {
-    id: uid(),
     name: document.getElementById('name').value.trim(),
     phone: document.getElementById('phone').value.trim(),
     email: document.getElementById('email').value.trim(),
@@ -448,19 +435,21 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     notes: document.getElementById('notes').value.trim(),
     date: document.getElementById('date').value,
     time: document.getElementById('time').value,
-    reminderSent: false,
-    reminderSentAt: null,
-    createdAt: new Date().toISOString()
+    reminder_12h_sent: false,
+    reminder_3h_sent: false
   };
 
   if (!item.name || !item.email || !item.date || !item.time) return;
 
-  const items = loadAll();
-  items.push(item);
-  saveAll(items);
+  const { error } = await supabase.from('appointments').insert([item]);
+  if (error) {
+    addLog(`❌ Ошибка сохранения: ${error.message}`, 'err');
+    return;
+  }
 
   addLog(`➕ Новая запись: ${item.name} — ${formatDateRu(item.date)} ${item.time}`, 'ok');
 
+  // Подтверждение клиенту
   await sendEmail({
     to: item.email,
     subject: 'Вы записаны на диагностику',
@@ -468,26 +457,34 @@ document.getElementById('form').addEventListener('submit', async (e) => {
   });
 
   e.target.reset();
-  renderList();
+  // Ставим завтрашнюю дату по умолчанию
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('date').value = tomorrow.toISOString().slice(0, 10);
+  document.getElementById('time').value = '10:00';
+
+  await renderList();
   checkReminders();
 });
 
 /* ============================================================
-   7. ИНИЦИАЛИЗАЦИЯ
+   8. ИНИЦИАЛИЗАЦИЯ
    ============================================================ */
-loadLog();
-renderLog();
-renderList();
+(async () => {
+  renderLog();
 
-const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-document.getElementById('date').value = tomorrow.toISOString().slice(0, 10);
-document.getElementById('time').value = '10:00';
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('date').value = tomorrow.toISOString().slice(0, 10);
+  document.getElementById('time').value = '10:00';
 
-checkReminders();
-setInterval(() => checkReminders(false), 60 * 1000);
+  await renderList();
+  addLog('🚀 Подключено к Supabase.', '');
 
-addLog('🚀 Локальная версия запущена.', '');
+  // Проверка напоминаний при загрузке и далее раз в минуту
+  checkReminders();
+  setInterval(() => checkReminders(false), 60 * 1000);
+})();
 </script>
 
 </body>
