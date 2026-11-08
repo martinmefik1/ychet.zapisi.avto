@@ -165,7 +165,7 @@
       100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
     }
 
-    #cancel-screen, #confirm-screen, #sign-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+    #cancel-screen, #confirm-screen, #sign-screen, #warranty-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
     .cancel-content { max-width: 400px; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .cancel-logo { max-width: 140px; width: 100%; height: auto; margin-bottom: 25px; border-radius: 12px; }
@@ -184,6 +184,23 @@
     .btn-clear { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); padding: 10px 15px; border-radius: 8px; font-weight: 600; }
     .btn-sign-submit { background: var(--ok); color: #fff; border: 1px solid var(--ok); padding: 10px 15px; border-radius: 8px; font-weight: 600; flex: 1; }
     .btn-sign-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Стили для экрана сертификата */
+    .warranty-content { max-width: 600px; width: 100%; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid #10b981; margin: auto; text-align: left; color: #334155; }
+    .warranty-header { background: #10b981; padding: 30px; text-align: center; }
+    .warranty-header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+    .warranty-body { padding: 40px 30px; }
+    .warranty-footer { background: #0f172a; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
+
+    /* Правила для печати PDF */
+    @media print {
+      body { background: #fff !important; padding: 0; margin: 0; }
+      body * { visibility: hidden; }
+      #warranty-screen, #warranty-screen * { visibility: visible; }
+      #warranty-screen { position: absolute; left: 0; top: 0; background: #fff; padding: 0; display: flex !important; }
+      .warranty-content { box-shadow: none; border: 2px solid #10b981; max-width: 100%; }
+      .no-print { display: none !important; }
+    }
 
     #snow-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; display: none; }
     body.ny-mode #snow-container { display: block; }
@@ -236,6 +253,16 @@
         <button class="btn-clear" onclick="clearCanvas()">Очистить</button>
         <button class="btn-sign-submit" id="btn-submit-sign" onclick="saveSignature()" disabled>Подписать и продолжить</button>
       </div>
+    </div>
+  </div>
+
+  <div id="warranty-screen">
+    <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 600px; margin: auto;">
+      <div class="warranty-content" id="warranty-content">
+        <!-- Сюда вставляется сертификат -->
+      </div>
+      <button class="no-print" onclick="window.print()" style="background: var(--accent); color: #fff; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 15px rgba(99,102,241,0.4);">🖨️ Скачать в PDF / Распечатать</button>
+      <button class="no-print" onclick="window.location.href='${SITE_URL}'" style="background: transparent; color: var(--text-muted); padding: 10px; font-size: 1rem;">← Вернуться на главную</button>
     </div>
   </div>
 
@@ -340,7 +367,6 @@
     const LOGO_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png';
     const AVITO_REVIEW_URL = 'https://www.avito.ru/brands/12365dad543a9fb840bc9e5de473b755';
 
-    // ВАШИ РЕКВИЗИТЫ ДЛЯ ОПЛАТЫ
     const PAYMENT_PHONE = '+79774770587'; 
     const PAYMENT_BANK = 'OZON bank';
     const PAYMENT_NAME = 'Андрей Ш';
@@ -486,7 +512,7 @@
       </div>`;
     }
 
-    function getWarrantyTemplate({ name, car, price, date, time, address }) {
+    function getWarrantyTemplate({ id, name, car, price, date, time, address }) {
       return `
       <div style="font-family: Arial, sans-serif; background: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
         <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid #10b981;">
@@ -514,9 +540,9 @@
               </p>
             </div>
 
-            <p style="font-size: 14px; color: #64748b; margin-top: 30px; text-align: center;">
-              <i>Вы можете сохранить это письмо как PDF-файл или сделать скриншот для подтверждения гарантии.</i>
-            </p>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="${SITE_URL}?warranty=${id}" style="background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);">📥 Скачать сертификат (PDF)</a>
+            </div>
           </div>
 
           <div style="background: #0f172a; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
@@ -756,7 +782,7 @@
       document.getElementById('btn-submit-sign').disabled = true;
     }
 
-    /* КОПИРОВАНИЕ И ОТКРЫТИЕ БАНКА */
+    /* КОПИРОВАНИЕ */
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
         showToast('Номер скопирован!', 'success');
@@ -771,26 +797,20 @@
       });
     }
 
-    function openBank(scheme, phone) {
-      copyToClipboard(phone);
-      const timeout = setTimeout(() => {
-        alert('Если приложение банка не открылось, просто откройте его вручную и вставьте скопированный номер: ' + phone);
-      }, 1500);
-
-      window.location.href = scheme;
-      
-      window.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') clearTimeout(timeout);
-      }, { once: true });
-    }
-
     async function saveSignature() {
       if (!hasDrawn) return;
       const btn = document.getElementById('btn-submit-sign');
       btn.disabled = true; btn.textContent = 'Сохранение...';
 
       const dataURL = canvas.toDataURL('image/png');
-      const { error } = await db.from('appointments').update({ signature: dataURL, is_signed: true }).eq('id', currentSignId);
+      
+      // АВТОМАТИЧЕСКИ ОТПРАВЛЯЕМ В АРХИВ ПРИ ПОДПИСАНИИ
+      const { error } = await db.from('appointments').update({ 
+        signature: dataURL, 
+        is_signed: true,
+        is_archived: true, 
+        archived_at: new Date().toISOString()
+      }).eq('id', currentSignId);
       
       if (!error) {
         const { data: appt } = await db.from('appointments').select('*').eq('id', currentSignId).single();
@@ -815,28 +835,29 @@
                 
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Открыть приложение банка:</p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                  <button onclick="openBank('ozonbank://', '${PAYMENT_PHONE}')" style="background: #005bff; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">OZON Bank</button>
-                  <button onclick="openBank('sberbank://', '${PAYMENT_PHONE}')" style="background: #fff; color: #000; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">Сбербанк</button>
-                  <button onclick="openBank('tinkoff://', '${PAYMENT_PHONE}')" style="background: #ffe033; color: #333; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">Тинькофф</button>
-                  <button onclick="openBank('vtb://', '${PAYMENT_PHONE}')" style="background: #002882; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">ВТБ</button>
+                  <a href="ozonbank://" onclick="copyToClipboard('${PAYMENT_PHONE}')" style="background: #005bff; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.9rem; display: block;">OZON Bank</a>
+                  <a href="sberbankonline://" onclick="copyToClipboard('${PAYMENT_PHONE}')" style="background: #fff; color: #000; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.9rem; display: block;">Сбербанк</a>
+                  <a href="tinkoff://" onclick="copyToClipboard('${PAYMENT_PHONE}')" style="background: #ffe033; color: #333; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.9rem; display: block;">Тинькофф</a>
+                  <a href="vtb://" onclick="copyToClipboard('${PAYMENT_PHONE}')" style="background: #002882; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.9rem; display: block;">ВТБ</a>
                 </div>
                 <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">* Номер автоматически скопируется. Вставьте его в приложении банка.</p>
               </div>
             ` : '<p style="color: var(--ok); font-weight: bold;">Оплата не требуется (сумма не указана)</p>'}
             
+            <a href="${SITE_URL}?warranty=${appt.id}" style="display: inline-block; margin-top: 15px; background: var(--accent); color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: bold;">📥 Скачать сертификат (PDF)</a>
             <p style="font-size: 0.9rem; opacity: 0.7; color: #fff; margin-top: 15px;">Вы можете закрыть эту вкладку.</p>
           </div>
         `;
 
         const warrantyHtml = getWarrantyTemplate({ 
-          name: appt.name, car: appt.car, price: appt.price || 'По договоренности', 
+          id: appt.id, name: appt.name, car: appt.car, price: appt.price || 'По договоренности', 
           date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address 
         });
         await sendEmail({ to: appt.email, subject: 'Сертификат гарантии (VAG FEATURE)', body: warrantyHtml });
 
         const masterHtml = getEmailTemplate({ 
           id: appt.id, title: 'Клиент подписал акт', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
-          introText: `Клиент <b>${escapeHtml(appt.name)}</b> успешно подписал акт выполненных работ.`
+          introText: `Клиент <b>${escapeHtml(appt.name)}</b> успешно подписал акт выполненных работ. Запись автоматически перемещена в архив.`
         });
         await sendEmail({ to: MASTER_EMAIL, subject: `✅ Акт подписан: ${appt.name}`, body: masterHtml });
 
@@ -904,6 +925,9 @@
       let sentCount = 0;
 
       for (const it of items) {
+        // ПРОПУСКАЕМ ПОДПИСАННЫЕ И АРХИВНЫЕ
+        if (it.is_archived || it.is_signed) continue;
+
         const apptTime = new Date(it.date+'T'+it.time).getTime();
         const timeUntil = apptTime - now.getTime();
         const cancelLink = `${SITE_URL}?cancel=${it.id}`;
@@ -995,6 +1019,48 @@
       }
     }
 
+    /* ЭКРАН СЕРТИФИКАТА (ДЛЯ СКАЧИВАНИЯ В PDF) */
+    async function handleWarranty(id) {
+      document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
+      document.getElementById('warranty-screen').style.display = 'flex';
+      
+      const { data: appt } = await db.from('appointments').select('*').eq('id', id).single();
+      
+      if (appt) {
+        document.getElementById('warranty-content').innerHTML = `
+          <div class="warranty-header">
+            <h1>СЕРТИФИКАТ ГАРАНТИИ</h1>
+            <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 16px;">Действует 7 дней с момента подписания</p>
+          </div>
+          
+          <div class="warranty-body">
+            <p style="font-size: 18px; margin-top: 0; font-weight: bold; color: #334155;">Уважаемый(ая) ${escapeHtml(appt.name)},</p>
+            <p style="font-size: 16px; color: #334155;">Благодарим вас за выбор <b>VAG FEATURE</b>. Настоящий сертификат подтверждает, что работы по вашему автомобилю выполнены качественно и в полном объеме.</p>
+            
+            <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0; color: #334155;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0; color: #64748b;">Автомобиль:</td><td style="padding: 8px 0; font-weight: bold;">${escapeHtml(appt.car)}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b;">Дата визита:</td><td style="padding: 8px 0; font-weight: bold;">${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b;">Сумма работ:</td><td style="padding: 8px 0; font-weight: bold; color: #10b981; font-size: 18px;">${appt.price || 'По договоренности'}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b;">Адрес:</td><td style="padding: 8px 0; font-weight: bold;">${escapeHtml(appt.address) || 'Выездная диагностика'}</td></tr>
+              </table>
+            </div>
+
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; color: #92400e;">
+              <p style="margin: 0; font-size: 14px;">
+                <b>Условия гарантии:</b> Если в течение 7 дней с момента подписания акта вы обнаружите недостатки выполненных работ, мы обязуемся устранить их бесплатно.
+              </p>
+            </div>
+          </div>
+
+          <div class="warranty-footer">
+            © 2026 VAG FEATURE. Все права защищены.<br>
+            <a href="tel:+79774770587" style="color: #10b981; text-decoration: none; font-weight: bold; margin-top: 5px; display: inline-block;">+7 (977) 477-05-87 (Андрей)</a>
+          </div>
+        `;
+      }
+    }
+
     /* ДОБАВЛЕНИЕ */
     document.getElementById('form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1062,6 +1128,7 @@
       if (urlParams.get('cancel')) { await handleCancellation(urlParams.get('cancel')); } 
       else if (urlParams.get('confirm')) { await handleConfirmation(urlParams.get('confirm')); } 
       else if (urlParams.get('sign')) { await handleSigning(urlParams.get('sign')); }
+      else if (urlParams.get('warranty')) { await handleWarranty(urlParams.get('warranty')); }
       else {
         addLog('🚀 Система запущена', 'ok');
         await cleanupArchive();
