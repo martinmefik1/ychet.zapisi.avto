@@ -37,7 +37,6 @@
 
     .app { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
 
-    /* ШАПКА */
     .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px; color: #fff; }
     .site-logo { height: 45px; width: auto; object-fit: contain; border-radius: 8px; }
@@ -53,7 +52,6 @@
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .badge-cloud { font-size: 0.8rem; font-weight: 600; background: var(--ok-bg); color: var(--ok); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--ok); box-shadow: 0 0 15px var(--ok-bg); }
 
-    /* ТУМБЛЕРЫ */
     .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; user-select: none; }
     .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--border); border-radius: 12px; transition: 0.3s; }
     .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
@@ -64,15 +62,12 @@
     #rgb-toggle:checked + .toggle-switch::after { transform: translateX(20px); }
     #rgb-toggle { display: none; }
 
-    /* СЕТКА */
     .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
     @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.5rem; } .header-controls { width: 100%; justify-content: space-between; } }
 
-    /* КАРТОЧКИ */
     .card { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
     .card h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 
-    /* ФОРМА */
     label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin: 14px 0 6px; }
     input, textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; font-family: inherit; background: rgba(15, 23, 42, 0.6); color: var(--text); transition: all 0.3s ease; }
     input:focus, textarea:focus { outline: none; border-color: var(--accent); background: rgba(30, 41, 59, 0.9); box-shadow: 0 0 0 3px var(--accent-glow); }
@@ -82,7 +77,6 @@
     .row input { width: 100%; max-width: 100%; }
     @media (max-width: 480px) { .row { flex-direction: column; gap: 0; } .row > div { width: 100%; } }
 
-    /* КНОПКИ */
     button { cursor: pointer; border: none; border-radius: 10px; font-family: inherit; font-weight: 600; transition: all 0.2s; }
     .btn-primary { width: 100%; margin-top: 24px; padding: 14px 20px; background: var(--accent); color: #fff; font-size: 1rem; box-shadow: 0 4px 15px var(--accent-glow); display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
@@ -98,13 +92,11 @@
     .btn-export:hover { background: var(--ok); color: #fff; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    /* ВКЛАДКИ */
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .tab-btn { background: transparent; color: var(--text-muted); border: none; font-size: 0.9rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
     .tab-btn.active { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); }
     .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
 
-    /* ТАБЛИЦА */
     .table-wrapper { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     th, td { text-align: left; padding: 14px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -114,7 +106,6 @@
     .cell-sub { color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; gap: 6px; margin-top: 4px; }
     .note-cell { background: var(--warn-bg); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; color: var(--warn); border-left: 3px solid var(--warn); display: inline-block; max-width: 200px; }
 
-    /* БЕЙДЖИ */
     .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; margin-bottom: 6px; }
     .badge-sent { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
     .badge-pending { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
@@ -130,14 +121,12 @@
       .actions { justify-content: flex-start; margin-top: 8px; }
     }
 
-    /* УВЕДОМЛЕНИЯ */
     #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; }
     .toast { background: var(--card-bg); backdrop-filter: blur(12px); padding: 14px 20px; border-radius: 10px; border: 1px solid var(--border); font-weight: 500; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
     .toast.success { border-left: 4px solid var(--ok); }
     .toast.error { border-left: 4px solid var(--err); }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* ТЕРМИНАЛ */
     .log-wrapper { margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border); background: #020617; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: border-color 0.3s, box-shadow 0.3s; }
     .log-header { background: #1e293b; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
     .log-box { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #e2e8f0; padding: 12px 16px; height: 110px; overflow-y: auto; line-height: 1.6; transition: height 0.3s ease, padding 0.3s ease; }
@@ -150,7 +139,6 @@
     .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     .log-box::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-    /* RGB */
     body.rgb-mode .card, body.rgb-mode .log-wrapper { animation: rgbGlow 4s linear infinite; }
     @keyframes rgbGlow {
       0% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
@@ -160,7 +148,6 @@
       100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
     }
 
-    /* ЭКРАНЫ */
     #cancel-screen, #confirm-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; }
     .cancel-content { max-width: 400px; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -169,7 +156,6 @@
     .confirm-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
     .cancel-text { font-size: 1.1rem; color: var(--text-muted); }
 
-    /* НОВЫЙ ГОД */
     #snow-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; display: none; }
     body.ny-mode #snow-container { display: block; }
     .snowflake { position: absolute; top: -10px; background: #fff; border-radius: 50%; opacity: 0.8; animation: fall linear infinite; }
@@ -295,8 +281,6 @@
     const MASTER_EMAIL = 'vag.feature.avito@gmail.com'; 
     const SITE_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/';
     const LOGO_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png';
-    
-    // Ссылка на ваш профиль Авито для отзывов
     const AVITO_REVIEW_URL = 'https://www.avito.ru/brands/12365dad543a9fb840bc9e5de473b755';
 
     let currentTab = 'active';
@@ -339,23 +323,27 @@
       }
     }
 
+    /* ГЕНЕРАЦИЯ ФАЙЛА ДЛЯ СИСТЕМНОГО КАЛЕНДАРЯ (.ics) */
+    function getICSLink(title, date, time, address, car) {
+      if (!date || !time) return '';
+      const [d, m, y] = date.split('.');
+      const [hh, mm] = time.split(':');
+      const start = `${y}${m}${d}T${hh}${mm}00`;
+      const endHour = (parseInt(hh) + 1).toString().padStart(2, '0');
+      const end = `${y}${m}${d}T${endHour}${mm}00`;
+      
+      const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//VAG FEATURE//Diagnostics//RU\r\nBEGIN:VEVENT\r\nSUMMARY:Диагностика VAG FEATURE\r\nDTSTART:${start}\r\nDTEND:${end}\r\nDESCRIPTION:Автомобиль: ${car}\\nМастер: Андрей +7 (977) 477-05-87\r\nLOCATION:${address || 'По договоренности'}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+      
+      // Возвращаем Data URI для скачивания файла
+      return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`;
+    }
+
     /* ШАБЛОН ПИСЬМА */
     function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false }) {
       const mainText = introText || 'Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:';
       
-      let calendarLink = '';
-      if (!isMaster && date && time) {
-        const dateParts = date.split('.');
-        if(dateParts.length === 3) {
-          const startDate = `${dateParts[2]}${dateParts[1]}${dateParts[0]}T${time.replace(':','')}00`;
-          const endHour = (parseInt(time.split(':')[0]) + 1).toString().padStart(2, '0');
-          const endDate = `${dateParts[2]}${dateParts[1]}${dateParts[0]}T${endHour}${time.split(':')[1]}00`;
-          const titleEnc = encodeURIComponent('Диагностика VAG FEATURE');
-          const detailsEnc = encodeURIComponent(`Автомобиль: ${car}\nМастер: Андрей +7 (977) 477-05-87`);
-          const locEnc = encodeURIComponent(address || '');
-          calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titleEnc}&dates=${startDate}/${endDate}&details=${detailsEnc}&location=${locEnc}`;
-        }
-      }
+      // Получаем ссылку на .ics файл для системного календаря
+      let calendarLink = getICSLink('Диагностика', date, time, address, car);
 
       return `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
@@ -401,7 +389,7 @@
 
             ${calendarLink ? `
             <div style="text-align: center; margin-bottom: 25px;">
-              <a href="${calendarLink}" style="background: #f1f5f9; color: #3b82f6; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #cbd5e1; display: inline-block;">📅 Добавить в календарь</a>
+              <a href="${calendarLink}" download="VAG_FEATURE_Diagnostika.ics" style="background: #f1f5f9; color: #3b82f6; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #cbd5e1; display: inline-block;">📅 Добавить в календарь</a>
             </div>
             ` : ''}
 
@@ -705,11 +693,10 @@
             await db.from('appointments').update({ review_sent: true }).eq('id', it.id);
             addLog(`⭐ Запрошен отзыв у ${it.name}`, 'ok');
           }
-          continue; // Идем к следующей записи
+          continue; 
         }
 
-        if (timeUntil < 0) continue; // Для напоминаний пропускаем прошедшие
-        
+        if (timeUntil < 0) continue; 
 
         // 12 ЧАСОВ
         if (!it.reminder_12h_sent && it.date !== now.toISOString().slice(0,10)) {
@@ -770,7 +757,6 @@
         const appt = rows[0];
         await db.from('appointments').update({ is_confirmed: true }).eq('id', confirmId);
         
-        // ИДЕЯ 4: PUSH-УВЕДОМЛЕНИЕ ВАМ НА ТЕЛЕФОН
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification("✅ Клиент подтвердил визит!", { 
             body: `${appt.name} (${appt.car}) приедет ${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}`,
@@ -843,10 +829,14 @@
 
     /* ИНИЦИАЛИЗАЦИЯ */
     (async () => {
+      // СРАЗУ ЗАПРАШИВАЕМ РАЗРЕШЕНИЕ НА УВЕДОМЛЕНИЯ
+      if ("Notification" in window && Notification.permission !== "granted") { 
+        try { await Notification.requestPermission(); } catch(e) {} 
+      }
+
       if (localStorage.getItem('rgb_mode') === 'true') { document.getElementById('rgb-toggle').checked = true; toggleRGB(document.getElementById('rgb-toggle')); }
       if (localStorage.getItem('ny_mode') === 'true') { document.getElementById('ny-toggle').checked = true; toggleNewYear(document.getElementById('ny-toggle')); }
-      if ("Notification" in window && Notification.permission === "default") { try { await Notification.requestPermission(); } catch(e) {} }
-
+      
       document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
       document.getElementById('time').value = '10:00';
 
@@ -857,8 +847,19 @@
         addLog('🚀 Система запущена', 'ok');
         await cleanupArchive();
         await renderList();
-        db.channel('realtime-appointments').on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { renderList(); }).subscribe();
-        checkReminders(); setInterval(() => checkReminders(), 60000);
+        
+        // Realtime обновления
+        db.channel('realtime-appointments')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
+            addLog('🔄 Realtime обновление', 'ok'); 
+            renderList(); 
+          }).subscribe();
+
+        // Резервное обновление каждые 15 секунд (на случай сбоя Realtime)
+        setInterval(() => { renderList(); }, 15000);
+
+        checkReminders(); 
+        setInterval(() => checkReminders(), 60000);
       }
     })();
   </script>
