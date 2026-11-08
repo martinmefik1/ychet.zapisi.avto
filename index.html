@@ -2,11 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Учет записей — Автосервис</title>
+<!-- PWA настройки для iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href='data:application/manifest+json,{"name":"Учет записей","short_name":"Записи","start_url":"/ychet.zapisi.avto/","display":"standalone","background_color":"#0b1120","theme_color":"#0b1120"}'>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -32,6 +34,7 @@
     background-image: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
                       radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
     background-attachment: fixed;
+    -webkit-tap-highlight-color: transparent;
   }
   .app { max-width: 1400px; margin: 0 auto; }
 
@@ -45,7 +48,7 @@
   .log-header { background: #1e293b; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
   .log-header-dots { display: flex; gap: 6px; }
   .log-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .log-box { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #e2e8f0; padding: 12px 16px; height: 140px; overflow-y: auto; line-height: 1.6; }
+  .log-box { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #e2e8f0; padding: 12px 16px; height: 120px; overflow-y: auto; line-height: 1.6; }
   .log-box .t { color: #64748b; margin-right: 8px; }
   .log-box .ok { color: #4ade80; }
   .log-box .warn { color: #fbbf24; }
@@ -63,7 +66,7 @@
   label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin: 14px 0 6px; }
   input, textarea {
     width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
-    font-size: 0.95rem; font-family: inherit; background: rgba(15, 23, 42, 0.6); color: var(--text);
+    font-size: 16px; font-family: inherit; background: rgba(15, 23, 42, 0.6); color: var(--text);
     transition: all 0.3s ease;
   }
   input:focus, textarea:focus { outline: none; border-color: var(--accent); background: rgba(30, 41, 59, 0.9); box-shadow: 0 0 0 3px var(--accent-glow); }
@@ -83,6 +86,7 @@
   .btn-icon { padding: 8px 12px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; }
   .btn-send { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
   .btn-send:hover { background: var(--accent); color: #fff; }
+  .btn-send:disabled { background: transparent; border-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
   .btn-delete { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
   .btn-delete:hover { background: var(--err); color: #fff; }
   .actions { display: flex; gap: 8px; }
@@ -112,21 +116,31 @@
   .toast.error { border-left: 4px solid var(--err); }
   @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-  /* Модальное окно отмены */
-  #cancel-screen { display: none; position: fixed; inset: 0; background: rgba(11, 17, 32, 0.9); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; }
-  .cancel-card { background: var(--card-bg); border: 1px solid var(--border); padding: 48px; border-radius: 24px; text-align: center; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: scaleIn 0.3s ease; }
-  @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .cancel-card h2 { color: var(--err); margin-bottom: 16px; font-size: 1.8rem; }
+  /* Экран отмены (Скрывает весь сайт) */
+  #cancel-screen { 
+    display: none; position: fixed; inset: 0; 
+    background: var(--bg); z-index: 99999; align-items: center; justify-content: center; 
+    padding: 20px; text-align: center;
+  }
+  .cancel-content { max-width: 400px; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .cancel-icon { font-size: 5rem; margin-bottom: 20px; display: inline-block; }
+  .cancel-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--err); }
+  .cancel-text { font-size: 1.1rem; color: var(--text-muted); line-height: 1.6; }
 </style>
 </head>
 <body>
 
+<!-- Экран отмены (Скрывает сайт) -->
 <div id="cancel-screen">
-  <div class="cancel-card">
-    <div style="font-size: 4rem; margin-bottom: 16px;">👌</div>
-    <h2>Запись отменена</h2>
-    <p style="color: var(--text-muted); margin-bottom: 32px;">Ваша запись успешно отменена. Мастер получил уведомление. Вы можете закрыть эту страницу.</p>
-    <a href="https://martinmefik1.github.io/ychet.zapisi.avto/" style="display: inline-block; padding: 12px 24px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600;">Вернуться на сайт</a>
+  <div class="cancel-content">
+    <div class="cancel-icon">👌</div>
+    <div class="cancel-title">Запись отменена</div>
+    <div class="cancel-text">
+      Ваша запись на диагностику успешно отменена.<br>
+      Мастер уже получил уведомление.<br><br>
+      <span style="font-size: 0.9rem; opacity: 0.7;">Вы можете закрыть эту вкладку.</span>
+    </div>
   </div>
 </div>
 
@@ -180,13 +194,6 @@
           <button class="btn-primary" type="submit" id="submit-btn">Сохранить и отправить</button>
         </form>
       </div>
-
-      <div class="card">
-        <h2>⚙️ Управление</h2>
-        <button class="btn-icon btn-send" style="width: 100%; justify-content: center; padding: 12px;" onclick="checkReminders(true)">
-          🔄 Проверить напоминания (12ч/3ч)
-        </button>
-      </div>
     </div>
 
     <div class="card">
@@ -212,7 +219,7 @@ let logLines = [];
 function addLog(text, type = '') {
   const time = new Date().toLocaleTimeString('ru-RU');
   logLines.push({ time, text, type });
-  if (logLines.length > 100) logLines.shift(); // Держим только последние 100 строк
+  if (logLines.length > 100) logLines.shift();
   
   const el = document.getElementById('log');
   el.innerHTML = logLines.map(l =>
@@ -237,18 +244,15 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
-/* 3. ОТПРАВКА ПИСЕМ (С таймаутом) */
+/* 3. ОТПРАВКА ПИСЕМ */
 async function sendEmail({ to, subject, body }) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // Ждем максимум 10 секунд
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
       body: JSON.stringify({ to, subject, body }),
       signal: controller.signal
     });
@@ -264,7 +268,7 @@ async function sendEmail({ to, subject, body }) {
     return { ok: true };
   } catch (err) {
     clearTimeout(timeoutId);
-    const errMsg = err.name === 'AbortError' ? 'Таймаут (Сервер не ответил)' : err.message;
+    const errMsg = err.name === 'AbortError' ? 'Таймаут' : err.message;
     addLog(`❌ Ошибка отправки (${to}): ${errMsg}`, 'err');
     return { ok: false, error: errMsg };
   }
@@ -332,8 +336,7 @@ function reminder12hTime(item) { return new Date(appointmentDate(item).getTime()
 function reminder3hTime(item) { return new Date(appointmentDate(item).getTime() - 3 * 60 * 60 * 1000); }
 function formatDateRu(iso) { if(!iso) return ''; const [y, m, d] = iso.split('-'); return `${d}.${m}.${y}`; }
 
-async function checkReminders(manual = false) {
-  if (manual) addLog('🔄 Проверка напоминаний...', '');
+async function checkReminders() {
   const items = await loadAll();
   const now = new Date();
   let sentCount = 0;
@@ -373,15 +376,15 @@ async function checkReminders(manual = false) {
   if (sentCount > 0) {
     showToast(`Авто-напоминания отправлены: ${sentCount}`);
     addLog(`✅ Отправлено авто-напоминаний: ${sentCount}`, 'ok');
-  } else if (manual) {
-    showToast('Нет записей, требующих напоминания');
-    addLog(`ℹ️ Записей для напоминания нет`, '');
   }
   await renderList();
 }
 
-/* 7. РУЧНОЕ НАПОМИНАНИЕ */
+/* 7. РУЧНОЕ НАПОМИНАНИЕ (с блокировкой на 5 минут) */
 async function sendManualReminder(id) {
+  const lockUntil = localStorage.getItem('reminder_lock_' + id);
+  if (lockUntil && Date.now() < parseInt(lockUntil)) return;
+
   const { data, error } = await db.from('appointments').select('*').eq('id', id).single();
   if (error || !data) { showToast('Ошибка: запись не найдена', 'error'); return; }
   
@@ -394,9 +397,16 @@ async function sendManualReminder(id) {
     introText: 'Мастер напоминает, что вы записаны на диагностику автомобиля.'
   });
 
-  const res = await sendEmail({ to: it.email, subject: 'Напоминание: вы записаны на диагностику', body: html });
-  if (res.ok) showToast(`Письмо отправлено: ${it.name}`);
-  else showToast('Ошибка при отправке письма', 'error');
+  showToast('Отправляем...');
+  const res = await sendEmail({ to: it.email, subject: 'Напоминание: вы записаны', body: html });
+  
+  if (res.ok) {
+    showToast(`Письмо отправлено: ${it.name}`);
+    localStorage.setItem('reminder_lock_' + id, Date.now() + 300000); // Блокировка на 5 минут
+    await renderList();
+  } else {
+    showToast('Ошибка при отправке письма', 'error');
+  }
 }
 
 /* 8. ОТРИСОВКА ТАБЛИЦЫ */
@@ -424,6 +434,9 @@ async function renderList() {
       let b3 = it.reminder_3h_sent ? '<span class="badge badge-sent">3ч: отправлено</span>' : 
                `<span class="badge badge-pending">3ч: ${reminder3hTime(it) <= now ? 'готово' : 'через ' + humanDiff(reminder3hTime(it) - now)}</span>`;
 
+      const lockUntil = localStorage.getItem('reminder_lock_' + it.id);
+      const isLocked = lockUntil && Date.now() < parseInt(lockUntil);
+
       return `<tr>
         <td>
           <div class="cell-name">${escapeHtml(it.name)}</div>
@@ -441,13 +454,17 @@ async function renderList() {
         </td>
         <td>
           <div class="actions">
-            <button class="btn-icon btn-send" onclick="sendManualReminder('${it.id}')">✉️ Напомнить</button>
+            <button class="btn-icon btn-send" id="btn-remind-${it.id}" onclick="sendManualReminder('${it.id}')" ${isLocked ? 'disabled' : ''}>
+              ${isLocked ? '⏳ Ждите...' : '✉️ Напомнить'}
+            </button>
             <button class="btn-icon btn-delete" onclick="removeItem('${it.id}')">🗑️</button>
           </div>
         </td>
       </tr>`;
     }).join('')}
     </tbody></table>`;
+
+  startButtonTimers();
 }
 
 function humanDiff(ms) { 
@@ -457,9 +474,31 @@ function humanDiff(ms) {
   return h > 0 ? `${h}ч ${m}м` : `${m}м`; 
 }
 
+function startButtonTimers() {
+  if (window.btnTimer) clearInterval(window.btnTimer);
+  window.btnTimer = setInterval(() => {
+    document.querySelectorAll('.btn-send').forEach(btn => {
+      const id = btn.id.replace('btn-remind-', '');
+      if (!id) return;
+      const lockUntil = localStorage.getItem('reminder_lock_' + id);
+      if (lockUntil && Date.now() < parseInt(lockUntil)) {
+        const msLeft = parseInt(lockUntil) - Date.now();
+        const m = Math.floor(msLeft / 60000);
+        const s = Math.floor((msLeft % 60000) / 1000);
+        btn.innerHTML = `⏳ ${m}:${s.toString().padStart(2, '0')}`;
+        btn.disabled = true;
+      } else if (btn.disabled) {
+        btn.innerHTML = '✉️ Напомнить';
+        btn.disabled = false;
+      }
+    });
+  }, 1000);
+}
+
 async function removeItem(id) { 
   if (confirm('Удалить эту запись?')) {
     if (await deleteAppointment(id)) {
+      localStorage.removeItem('reminder_lock_' + id);
       await renderList(); 
       showToast('Запись удалена', 'success');
       addLog(`🗑️ Запись удалена`, 'warn');
@@ -469,7 +508,9 @@ async function removeItem(id) {
 
 /* 9. ОТМЕНА КЛИЕНТОМ */
 async function handleCancellation(cancelId) {
+  document.querySelector('.app').style.display = 'none';
   document.getElementById('cancel-screen').style.display = 'flex';
+
   const { data: rows } = await db.from('appointments').select('*').eq('id', cancelId);
   
   if (rows && rows.length > 0) {
@@ -477,6 +518,13 @@ async function handleCancellation(cancelId) {
     const deleted = await deleteAppointment(cancelId);
     
     if (deleted) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("❌ Запись отменена", {
+          body: `${appt.name} отменил запись на ${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}`,
+          icon: "https://martinmefik1.github.io/ychet.zapisi.avto/favicon.ico"
+        });
+      }
+
       const masterHtml = getEmailTemplate({
         title: 'Запись отменена', color: '#ef4444', name: 'Мастер',
         car: appt.car, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address,
@@ -545,6 +593,11 @@ document.getElementById('form').addEventListener('submit', async (e) => {
 
 /* 11. ИНИЦИАЛИЗАЦИЯ */
 (async () => {
+  // Запрашиваем разрешение на уведомления сразу при запуске
+  if ("Notification" in window && Notification.permission === "default") {
+    try { await Notification.requestPermission(); } catch(e) {}
+  }
+
   document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   document.getElementById('time').value = '10:00';
 
@@ -555,9 +608,17 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     addLog('🚀 Система успешно запущена', 'ok');
     await renderList();
     
-    // Авто-проверка напоминаний раз в минуту
+    // Включаем синхронизацию в реальном времени!
+    db.channel('realtime-appointments')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, payload => {
+        addLog('🔄 Обновление с другого устройства', 'ok');
+        renderList();
+      })
+      .subscribe();
+
+    // Авто-проверка напоминаний
     checkReminders();
-    setInterval(() => checkReminders(false), 60000);
+    setInterval(() => checkReminders(), 60000);
   }
 })();
 </script>
