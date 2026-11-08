@@ -92,6 +92,14 @@
       animation: rgbShift 5s linear infinite;
     }
 
+    /* Стили для логотипа в шапке */
+    .site-logo {
+      height: 45px;
+      width: auto;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
     @keyframes rgbShift { 
       0% { background-position: 0% 50%; } 
       100% { background-position: 100% 50%; } 
@@ -246,7 +254,20 @@
       display: flex; 
       gap: 12px; 
     }
-    .row > div { flex: 1; }
+    .row > div { 
+      flex: 1; 
+      min-width: 0;
+    }
+
+    @media (max-width: 480px) {
+      .row { 
+        flex-direction: column; 
+        gap: 0; 
+      }
+      .row > div { 
+        width: 100%; 
+      }
+    }
 
     /* =========================================
        КНОПКИ
@@ -568,7 +589,15 @@
       to { transform: scale(1); opacity: 1; } 
     }
 
-    .cancel-icon { font-size: 5rem; margin-bottom: 20px; }
+    /* Стили для логотипа на экране отмены */
+    .cancel-logo {
+      max-width: 140px;
+      width: 100%;
+      height: auto;
+      margin-bottom: 25px;
+      border-radius: 12px;
+    }
+
     .cancel-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--err); }
     .cancel-text { font-size: 1.1rem; color: var(--text-muted); }
 
@@ -642,7 +671,8 @@
   <!-- Экран отмены -->
   <div id="cancel-screen">
     <div class="cancel-content">
-      <div class="cancel-icon">👌</div>
+      <!-- Добавлен Логотип -->
+      <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="Логотип" class="cancel-logo">
       <div class="cancel-title">Запись отменена</div>
       <div class="cancel-text">
         Ваша запись на диагностику успешно отменена.<br>
@@ -657,7 +687,11 @@
 
   <div class="app">
     <div class="header">
-      <h1>🚗 Учет записей</h1>
+      <h1>
+        <!-- Добавлен Логотип в шапку -->
+        <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="Логотип" class="site-logo">
+        Учет записей
+      </h1>
       <div class="header-controls">
         <label class="toggle-container">
           <input type="checkbox" id="rgb-toggle" onchange="toggleRGB(this)">
@@ -728,6 +762,8 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const MASTER_EMAIL = 'vag.feature.avito@gmail.com'; 
     const SITE_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/';
+    // Путь к логотипу для писем
+    const LOGO_URL = 'https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png';
 
     /* =========================================
        СИСТЕМНЫЙ ЛОГ
@@ -790,70 +826,81 @@
     }
 
     /* =========================================
-       ШАБЛОН ПИСЬМА (ПРОФЕССИОНАЛЬНЫЙ ДИЗАЙН)
+       НОВЫЙ ШАБЛОН ПИСЬМА (С ЛОГОТИПОМ)
        ========================================= */
     function getEmailTemplate({ title, color, name, car, date, time, address, isCancelBtn, cancelLink }) {
       return `
-      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
         <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
           
-          <!-- Шапка письма -->
-          <div style="background: linear-gradient(135deg, ${color} 0%, #4f46e5 100%); padding: 40px 30px; text-align: center;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🚗</div>
-            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px;">${title}</h1>
+          <!-- Шапка письма с логотипом -->
+          <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid ${color};">
+            <img src="${LOGO_URL}" alt="Логотип Автосервиса" style="max-width: 120px; height: auto; margin-bottom: 15px; border-radius: 8px; display: inline-block;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px;">АВТОСЕРВИС</h1>
+            <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">${title}</p>
           </div>
           
           <!-- Тело письма -->
           <div style="padding: 40px 30px; color: #334155;">
-            <p style="font-size: 18px; margin-top: 0;">Здравствуйте, <b>${name}</b>!</p>
-            <p style="font-size: 16px; color: #475569;">Ждем вас и ваш автомобиль на диагностику. Пожалуйста, ознакомьтесь с деталями вашей записи:</p>
+            <p style="font-size: 18px; margin-top: 0; font-weight: 600; color: #0f172a;">Здравствуйте, ${name}!</p>
+            <p style="font-size: 15px; color: #475569; margin-bottom: 25px;">Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:</p>
             
             <!-- Блок с информацией -->
-            <div style="background: #f8fafc; border-radius: 12px; padding: 25px; margin: 30px 0; border: 1px solid #e2e8f0;">
+            <div style="background: #f8fafc; border-radius: 12px; padding: 20px 25px; margin: 25px 0; border: 1px solid #e2e8f0;">
               <table style="width: 100%; border-collapse: collapse;">
                 ${car ? `
                 <tr>
-                  <td style="padding: 8px 0; color: #64748b; width: 40px; font-size: 20px;">🚘</td>
-                  <td style="padding: 8px 0; font-size: 16px; color: #1e293b;"><b>Ваш автомобиль:</b> <br> <span style="font-size: 18px; color: ${color}; font-weight: bold;">${car}</span></td>
+                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">🚘</td>
+                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Автомобиль</span> <b style="font-size: 16px; color: ${color};">${car}</b></td>
                 </tr>` : ''}
                 <tr>
-                  <td style="padding: 8px 0; color: #64748b; width: 40px; font-size: 20px;">📅</td>
-                  <td style="padding: 8px 0; font-size: 16px; color: #1e293b;"><b>Дата:</b> ${date}</td>
+                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">📅</td>
+                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Дата</span> <b>${date}</b></td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #64748b; width: 40px; font-size: 20px;">⏰</td>
-                  <td style="padding: 8px 0; font-size: 16px; color: #1e293b;"><b>Время:</b> ${time}</td>
+                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">⏰</td>
+                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Время</span> <b>${time}</b></td>
                 </tr>
                 ${address ? `
                 <tr>
-                  <td style="padding: 8px 0; color: #64748b; width: 40px; font-size: 20px;">📍</td>
-                  <td style="padding: 8px 0; font-size: 16px; color: #1e293b;"><b>Адрес:</b> ${address}</td>
+                  <td style="padding: 10px 0; color: #64748b; width: 40px; font-size: 20px; vertical-align: top;">📍</td>
+                  <td style="padding: 10px 0; font-size: 15px; color: #1e293b;"><span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 2px;">Адрес</span> <b>${address}</b></td>
                 </tr>` : ''}
               </table>
             </div>
 
-            <!-- Профессиональный блок -->
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px 20px; border-radius: 8px; margin-bottom: 30px;">
-              <p style="margin: 0 0 10px 0; font-size: 14px; color: #166534;">
-                <b>💡 Совет от наших мастеров:</b> Для наиболее точной компьютерной диагностики, пожалуйста, приезжайте на прогретом автомобиле (проедьте не менее 10-15 км).
+            <!-- Блок совета -->
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 25px;">
+              <p style="margin: 0 0 12px 0; font-size: 15px; color: #92400e; font-weight: 600;">💡 Рекомендация от мастеров</p>
+              <p style="margin: 0 0 10px 0; font-size: 14px; color: #78350f;">
+                Если у вас <b>выездная диагностика</b>, пожалуйста, прогрейте автомобиль до рабочей температуры.
               </p>
+              <p style="margin: 0; font-size: 13px; color: #92400e; font-style: italic;">
+                * Исключение: если проблема проявляется только на холодном двигателе, прогрев не требуется.
+              </p>
+            </div>
+
+            <!-- Блок контактов -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
               <p style="margin: 0; font-size: 14px; color: #166534;">
-                <b>📞 Связь с нами:</b> Если вы опаздываете или у вас изменились планы, свяжитесь с нами по телефону: <a href="tel:+79774770587" style="color: #10b981; text-decoration: none; font-weight: bold;">+7 (977) 477-05-87 (Андрей)</a>.
+                Если ваши планы изменились, пожалуйста, свяжитесь с нами:<br>
+                <a href="tel:+79774770587" style="color: #15803d; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; margin-top: 5px;">+7 (977) 477-05-87 (Андрей)</a>
               </p>
             </div>
 
             <!-- Блок отмены -->
             ${isCancelBtn ? `
-              <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px dashed #cbd5e1;">
-                <p style="font-size: 14px; color: #64748b; margin-bottom: 15px;">Если ваши планы изменились, вы можете отменить запись:</p>
-                <a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">Отменить запись</a>
+              <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e2e8f0;">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Вы также можете отменить запись онлайн:</p>
+                <a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">Отменить запись</a>
               </div>
             ` : ''}
           </div>
 
           <!-- Подвал -->
-          <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8;">
-            Это письмо отправлено автоматически.<br>Пожалуйста, не отвечайте на него.
+          <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+            Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.<br>
+            © ${new Date().getFullYear()} Автосервис
           </div>
         </div>
       </div>`;
@@ -954,7 +1001,7 @@
     }
 
     /* =========================================
-       РУЧНОЕ НАПОМИНАНИЕ (С БЛОКИРОВКОЙ)
+       РУЧНОЕ НАПОМИНАНИЕ
        ========================================= */
     async function sendManualReminder(id, btn) {
       btn.disabled = true;
@@ -1034,34 +1081,41 @@
       let sentCount = 0;
 
       for (const it of items) {
-        if (new Date(it.date+'T'+it.time) < now) continue;
+        const apptTime = new Date(it.date+'T'+it.time).getTime();
+        const timeUntil = apptTime - now.getTime();
+        
+        if (timeUntil < 0) continue; 
         
         const cancelLink = `${SITE_URL}?cancel=${it.id}`;
 
-        // За 12 часов
-        if (it.date !== new Date().toISOString().slice(0,10) && !it.reminder_12h_sent) {
-          if (new Date(it.date+'T'+it.time) - 43200000 <= now) {
-            const html = getEmailTemplate({ 
-              title: 'Напоминание: завтра диагностика', 
-              color: '#6366f1', 
-              name: it.name, 
-              car: it.car, 
-              date: formatDateRu(it.date), 
-              time: it.time, 
-              address: it.address, 
-              isCancelBtn: true, 
-              cancelLink 
-            });
-            if (await sendEmail({ to: it.email, subject: 'Напоминание: диагностика завтра', body: html })) {
-              await db.from('appointments').update({ reminder_12h_sent: true }).eq('id', it.id); 
-              sentCount++;
+        // ЛОГИКА 12 ЧАСОВ
+        if (!it.reminder_12h_sent && it.date !== now.toISOString().slice(0,10)) {
+          if (timeUntil <= 12 * 60 * 60 * 1000) {
+            if (timeUntil > 11 * 60 * 60 * 1000) {
+              const html = getEmailTemplate({ 
+                title: 'Напоминание: завтра диагностика', 
+                color: '#6366f1', 
+                name: it.name, 
+                car: it.car, 
+                date: formatDateRu(it.date), 
+                time: it.time, 
+                address: it.address, 
+                isCancelBtn: true, 
+                cancelLink 
+              });
+              if (await sendEmail({ to: it.email, subject: 'Напоминание: диагностика завтра', body: html })) {
+                await db.from('appointments').update({ reminder_12h_sent: true }).eq('id', it.id); 
+                sentCount++;
+              }
+            } else {
+              await db.from('appointments').update({ reminder_12h_sent: true }).eq('id', it.id);
             }
           }
         }
 
-        // За 3 часа
+        // ЛОГИКА 3 ЧАСА
         if (!it.reminder_3h_sent) {
-          if (new Date(it.date+'T'+it.time) - 10800000 <= now) {
+          if (timeUntil <= 3 * 60 * 60 * 1000) {
             const html = getEmailTemplate({ 
               title: 'Напоминание: диагностика через 3 часа', 
               color: '#f59e0b', 
