@@ -3,106 +3,251 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Запись на диагностику — локальная версия</title>
+<title>Запись на диагностику — автосервис</title>
 <style>
-  :root { --bg:#f4f6f8; --card:#fff; --accent:#2563eb; --ok:#16a34a; --warn:#d97706; --err:#dc2626; --border:#e2e8f0; }
-  * { box-sizing: border-box; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin:0; padding:24px; color:#0f172a; }
-  h1 { font-size: 1.4rem; margin: 0 0 16px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
-  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
-  .card h2 { font-size: 1.05rem; margin: 0 0 14px; }
-  label { display:block; font-size: .85rem; font-weight:600; margin: 10px 0 4px; color:#334155; }
-  input { width:100%; padding: 9px 11px; border:1px solid var(--border); border-radius: 8px; font-size: .95rem; }
-  input:focus { outline:2px solid var(--accent); outline-offset:1px; }
-  button { cursor:pointer; border:none; border-radius:8px; font-weight:600; font-size:.95rem; padding: 10px 16px; }
-  .btn-primary { background: var(--accent); color:#fff; width:100%; margin-top:16px; }
-  .btn-primary:hover { background:#1d4ed8; }
-  .btn-small { background:#e2e8f0; color:#0f172a; padding:5px 10px; font-size:.8rem; }
-  .btn-small:hover { background:#cbd5e1; }
-  .btn-danger { background:#fee2e2; color:var(--err); }
-  .btn-danger:hover { background:#fecaca; }
-  table { width:100%; border-collapse: collapse; font-size:.85rem; }
-  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--border); vertical-align:top; }
-  th { color:#64748b; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.03em; }
-  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:.72rem; font-weight:700; }
-  .badge-sent { background:#dcfce7; color:var(--ok); }
-  .badge-pending { background:#fef3c7; color:var(--warn); }
-  .badge-today { background:#e0e7ff; color:#4338ca; }
-  .log { font-family: ui-monospace, Consolas, monospace; font-size:.78rem; background:#0f172a; color:#e2e8f0; border-radius:8px; padding:12px; height: 340px; overflow-y:auto; white-space: pre-wrap; word-break: break-word; }
-  .log .t { color:#94a3b8; }
-  .log .ok { color:#4ade80; }
-  .log .warn { color:#fbbf24; }
-  .log .err { color:#f87171; }
-  .empty { color:#94a3b8; font-size:.85rem; padding:12px 0; }
-  .hint { font-size:.78rem; color:#64748b; margin-top:10px; line-height:1.45; }
-  .row { display:flex; gap:8px; }
-  .row > div { flex:1; }
+  :root {
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --ok: #16a34a;
+    --ok-soft: #dcfce7;
+    --warn: #d97706;
+    --warn-soft: #fef3c7;
+    --err: #dc2626;
+    --err-soft: #fee2e2;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 20px;
+    line-height: 1.5;
+  }
+
+  .app { max-width: 1300px; margin: 0 auto; }
+
+  /* Шапка */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+    margin-bottom: 28px;
+    padding: 0 4px;
+  }
+  .header h1 {
+    font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .header .badge-local {
+    font-size: 0.75rem; font-weight: 600;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 4px 12px; border-radius: 999px;
+  }
+
+  /* Сетка */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* Карточки */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Поля формы */
+  label {
+    display: block;
+    font-size: 0.82rem; font-weight: 600;
+    color: #334155;
+    margin: 14px 0 5px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #f8fafc;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .row { display: flex; gap: 14px; }
+  .row > div { flex: 1; }
+
+  /* Кнопки */
+  button { cursor: pointer; border: none; border-radius: 10px; font-family: inherit; font-weight: 600; }
+  .btn-primary {
+    width: 100%; margin-top: 22px; padding: 13px 20px;
+    background: var(--accent); color: #fff; font-size: 0.98rem;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-primary:active { transform: scale(0.985); }
+
+  .btn-small {
+    padding: 6px 12px; font-size: 0.8rem;
+    background: #e2e8f0; color: var(--text);
+    transition: background 0.15s;
+  }
+  .btn-small:hover { background: #cbd5e1; }
+  .btn-danger { background: var(--err-soft); color: var(--err); }
+  .btn-danger:hover { background: #fecaca; }
+
+  /* Таблица */
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--text-muted); font-weight: 600; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .cell-name { font-weight: 700; }
+  .cell-sub { color: var(--text-muted); font-size: 0.8rem; }
+  .note-cell {
+    background: #fefce8; border-radius: 8px; padding: 6px 10px;
+    font-size: 0.8rem; color: #854d0e;
+    border-left: 3px solid #eab308;
+  }
+  .note-empty { color: #cbd5e1; font-size: 0.8rem; font-style: italic; }
+
+  /* Бейджи */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; }
+  .badge-sent { background: var(--ok-soft); color: var(--ok); }
+  .badge-pending { background: var(--warn-soft); color: var(--warn); }
+  .badge-today { background: var(--accent-soft); color: var(--accent); }
+  .badge-none { background: #f1f5f9; color: #94a3b8; }
+
+  /* Лог */
+  .log-box {
+    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-size: 0.76rem; background: #0f172a; color: #e2e8f0;
+    border-radius: 12px; padding: 16px; height: 380px;
+    overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+    line-height: 1.6;
+  }
+  .log-box .t { color: #64748b; }
+  .log-box .ok { color: #4ade80; }
+  .log-box .warn { color: #fbbf24; }
+  .log-box .err { color: #f87171; }
+
+  .empty { color: #94a3b8; font-size: 0.86rem; padding: 16px 0; text-align: center; }
+
+  .hint {
+    font-size: 0.78rem; color: var(--text-muted);
+    margin-top: 12px; line-height: 1.5;
+    background: #f8fafc; padding: 10px 14px;
+    border-radius: 8px; border-left: 3px solid var(--border);
+  }
+
+  /* Скроллбар */
+  .log-box::-webkit-scrollbar { width: 6px; }
+  .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<h1>🚗 Запись на диагностику — локальная версия</h1>
-<p class="hint" style="max-width:1200px;margin:0 auto 16px;">
-  Данные хранятся в <b>localStorage</b> вашего браузера. Отправка писем <b>имитируется</b> (пишется в лог справа).
-  Позже заменим хранилище на Supabase, а «имитацию» — на вызов Edge Function с Gmail.
-</p>
+<div class="app">
+  <div class="header">
+    <h1>🚗 Запись на диагностику</h1>
+    <span class="badge-local">Локальный режим</span>
+  </div>
 
-<div class="grid">
+  <div class="grid">
 
-  <!-- ЛЕВАЯ КОЛОНКА: форма + список -->
-  <div>
-    <div class="card">
-      <h2>➕ Новая запись</h2>
-      <form id="form">
-        <label for="name">Имя клиента</label>
-        <input id="name" required placeholder="Иван Петров">
+    <!-- ЛЕВАЯ КОЛОНКА: форма + список -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
 
-        <label for="phone">Телефон</label>
-        <input id="phone" required placeholder="+7 900 123-45-67">
+      <div class="card">
+        <h2>➕ Новая запись</h2>
+        <form id="form">
+          <label for="name">Имя клиента</label>
+          <input id="name" required placeholder="Иван Петров">
 
-        <label for="email">Email клиента</label>
-        <input id="email" type="email" required placeholder="client@example.com">
+          <label for="phone">Телефон</label>
+          <input id="phone" required placeholder="+7 900 123-45-67">
 
-        <div class="row">
-          <div>
-            <label for="date">Дата</label>
-            <input id="date" type="date" required>
+          <label for="email">Email клиента</label>
+          <input id="email" type="email" required placeholder="client@example.com">
+
+          <label for="address">Адрес (куда приехать клиенту)</label>
+          <input id="address" placeholder="ул. Ленина, 10, автосервис «Гараж»">
+
+          <div class="row">
+            <div>
+              <label for="date">Дата</label>
+              <input id="date" type="date" required>
+            </div>
+            <div>
+              <label for="time">Время</label>
+              <input id="time" type="time" required>
+            </div>
           </div>
-          <div>
-            <label for="time">Время</label>
-            <input id="time" type="time" required>
-          </div>
+
+          <label for="notes">📝 Заметки для мастера (клиент не видит)</label>
+          <textarea id="notes" placeholder="Например: клиент жалуется на стук в подвеске, проверить стойки стабилизатора..."></textarea>
+
+          <button class="btn-primary" type="submit">Сохранить запись</button>
+        </form>
+        <div class="hint">
+          Поля «Адрес» и «Заметки для мастера» не попадают в письмо клиенту — они только для вас.
+          Если запись на сегодня, напоминание за 12 ч не создаётся.
         </div>
+      </div>
 
-        <button class="btn-primary" type="submit">Сохранить запись</button>
-      </form>
-      <p class="hint">Если запись на сегодня — напоминание за 12 ч не создаётся (по вашему условию).</p>
+      <div class="card">
+        <h2>📋 Все записи</h2>
+        <div id="list"><div class="empty">Пока нет записей.</div></div>
+      </div>
+
     </div>
 
-    <div class="card" style="margin-top:20px;">
-      <h2>📋 Записи</h2>
-      <div id="list"><div class="empty">Пока нет записей.</div></div>
+    <!-- ПРАВАЯ КОЛОНКА: лог -->
+    <div class="card" style="height: fit-content;">
+      <h2>📨 Лог отправки писем</h2>
+      <div id="log" class="log-box"></div>
+      <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <button class="btn-small" onclick="clearLog()">Очистить лог</button>
+        <button class="btn-small" onclick="checkReminders(true)">Проверить напоминания</button>
+      </div>
     </div>
-  </div>
 
-  <!-- ПРАВАЯ КОЛОНКА: лог -->
-  <div class="card" style="height:fit-content;">
-    <h2>📨 Лог «отправки» писем</h2>
-    <div id="log" class="log"></div>
-    <button class="btn-small" style="margin-top:10px;" onclick="clearLog()">Очистить лог</button>
-    <button class="btn-small" style="margin-top:10px;" onclick="checkReminders(true)">Проверить напоминания сейчас</button>
   </div>
-
 </div>
 
 <script>
 /* ============================================================
-   1. СЛОЙ ХРАНИЛИЩА (сейчас localStorage, позже — Supabase)
+   1. ХРАНИЛИЩЕ (localStorage — потом заменим на Supabase)
    ============================================================ */
-const STORE_KEY = 'auto_diag_appointments_v1';
-const LOG_KEY   = 'auto_diag_log_v1';
+const STORE_KEY = 'auto_diag_v2';
+const LOG_KEY   = 'auto_diag_log_v2';
 
 function loadAll() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
@@ -116,7 +261,7 @@ function uid() {
 }
 
 /* ============================================================
-   2. ЛОГ (визуальный)
+   2. ЛОГ
    ============================================================ */
 let logLines = [];
 function loadLog() {
@@ -139,31 +284,24 @@ function renderLog() {
   ).join('\n');
   el.scrollTop = el.scrollHeight;
 }
-function clearLog() {
-  logLines = []; saveLog(); renderLog();
-}
+function clearLog() { logLines = []; saveLog(); renderLog(); }
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* ============================================================
-   3. «ОТПРАВКА ПИСЬМА» — ЗАГЛУШКА
-   Позже заменим тело этой функции на вызов Supabase Edge Function,
-   которая отправит письмо через Gmail SMTP.
+   3. ОТПРАВКА ПИСЬМА — заглушка
+   ПОЗЖЕ: заменить на вызов Supabase Edge Function
    ============================================================ */
 async function sendEmail({ to, subject, body }) {
-  // --- ИМИТАЦИЯ (локально) ---
-  await new Promise(r => setTimeout(r, 150)); // небольшая задержка, как у сети
+  await new Promise(r => setTimeout(r, 120));
   addLog(`✉️ ПИСЬМО → ${to}\n    Тема: ${subject}\n    Текст: ${body}`, 'ok');
   return { ok: true, simulated: true };
 
-  /* --- БУДУЩАЯ РЕАЛЬНАЯ ВЕРСИЯ (Supabase Edge Function) ---
-  const res = await fetch('https://<project-ref>.supabase.co/functions/v1/send-email', {
+  /* БУДУЩАЯ РЕАЛЬНАЯ ВЕРСИЯ:
+  const res = await fetch('https://<PROJECT_REF>.supabase.co/functions/v1/send-email', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer <anon-key>'
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer <ANON_KEY>' },
     body: JSON.stringify({ to, subject, body })
   });
   return await res.json();
@@ -172,21 +310,13 @@ async function sendEmail({ to, subject, body }) {
 
 /* ============================================================
    4. ЛОГИКА ЗАПИСЕЙ И НАПОМИНАНИЙ
-   Условие: напоминание за 12 часов, НО если запись сегодня —
-   напоминание не создаётся.
    ============================================================ */
-
-// Возвращает объект Date для даты+времени записи
 function appointmentDate(item) {
   return new Date(`${item.date}T${item.time}:00`);
 }
-
-// Момент, когда нужно отправить напоминание (за 12 ч до записи)
 function reminderTime(item) {
   return new Date(appointmentDate(item).getTime() - 12 * 60 * 60 * 1000);
 }
-
-// Нужно ли создавать напоминание (запись НЕ сегодня)
 function shouldHaveReminder(item) {
   const today = new Date().toISOString().slice(0, 10);
   return item.date !== today;
@@ -195,7 +325,6 @@ function shouldHaveReminder(item) {
 function renderList() {
   const items = loadAll().sort((a, b) => appointmentDate(a) - appointmentDate(b));
   const el = document.getElementById('list');
-
   if (items.length === 0) {
     el.innerHTML = '<div class="empty">Пока нет записей.</div>';
     return;
@@ -206,7 +335,11 @@ function renderList() {
 
   el.innerHTML = `<table>
     <thead><tr>
-      <th>Клиент</th><th>Когда</th><th>Напоминание</th><th></th>
+      <th>Клиент</th>
+      <th>Когда</th>
+      <th>Заметка мастера</th>
+      <th>Напоминание</th>
+      <th></th>
     </tr></thead>
     <tbody>
     ${items.map(it => {
@@ -217,12 +350,23 @@ function renderList() {
         reminderBadge = '<span class="badge badge-sent">отправлено</span>';
       } else {
         const rt = reminderTime(it);
-        const when = rt <= now ? 'готово к отправке' : 'через ' + humanDiff(rt - now);
+        const when = rt <= now ? 'готово' : 'через ' + humanDiff(rt - now);
         reminderBadge = `<span class="badge badge-pending">${when}</span>`;
       }
+
+      const noteHtml = it.notes
+        ? `<div class="note-cell">${escapeHtml(it.notes)}</div>`
+        : `<span class="note-empty">—</span>`;
+
       return `<tr>
-        <td><b>${escapeHtml(it.name)}</b><br><span style="color:#64748b">${escapeHtml(it.phone)}</span><br><span style="color:#64748b">${escapeHtml(it.email)}</span></td>
+        <td>
+          <div class="cell-name">${escapeHtml(it.name)}</div>
+          <div class="cell-sub">${escapeHtml(it.phone)}</div>
+          <div class="cell-sub">${escapeHtml(it.email)}</div>
+          ${it.address ? `<div class="cell-sub">📍 ${escapeHtml(it.address)}</div>` : ''}
+        </td>
         <td>${escapeHtml(it.date)}<br>${escapeHtml(it.time)}</td>
+        <td>${noteHtml}</td>
         <td>${reminderBadge}</td>
         <td><button class="btn-small btn-danger" onclick="removeItem('${it.id}')">Удалить</button></td>
       </tr>`;
@@ -234,20 +378,17 @@ function humanDiff(ms) {
   if (ms <= 0) return '0 мин';
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
-  if (h > 0) return `${h} ч ${m} мин`;
-  return `${m} мин`;
+  return h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
 }
 
 function removeItem(id) {
-  const items = loadAll().filter(x => x.id !== id);
-  saveAll(items);
+  saveAll(loadAll().filter(x => x.id !== id));
   addLog(`🗑️ Запись удалена (id: ${id})`, 'warn');
   renderList();
 }
 
 /* ============================================================
    5. ПРОВЕРКА НАПОМИНАНИЙ
-   Вызывается при загрузке и далее каждую минуту.
    ============================================================ */
 let checking = false;
 async function checkReminders(manual = false) {
@@ -259,20 +400,15 @@ async function checkReminders(manual = false) {
     let sentCount = 0;
 
     for (const it of items) {
-      // пропускаем сегодняшние записи — по условию напоминаний нет
       if (!shouldHaveReminder(it)) continue;
-      // уже отправляли
       if (it.reminderSent) continue;
-      // ещё не время
       if (reminderTime(it) > now) continue;
-      // запись уже прошла — не отправляем
       if (appointmentDate(it) < now) continue;
 
-      // Отправляем напоминание
       await sendEmail({
         to: it.email,
         subject: 'Напоминание: диагностика автомобиля',
-        body: `Здравствуйте, ${it.name}! Напоминаем, что вы записаны на диагностику ${formatDateRu(it.date)} в ${it.time}.`
+        body: `Здравствуйте, ${it.name}! Напоминаем, что вы записаны на диагностику ${formatDateRu(it.date)} в ${it.time}.${it.address ? ` Адрес: ${it.address}.` : ''}`
       });
 
       it.reminderSent = true;
@@ -308,6 +444,8 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     name: document.getElementById('name').value.trim(),
     phone: document.getElementById('phone').value.trim(),
     email: document.getElementById('email').value.trim(),
+    address: document.getElementById('address').value.trim(),
+    notes: document.getElementById('notes').value.trim(),
     date: document.getElementById('date').value,
     time: document.getElementById('time').value,
     reminderSent: false,
@@ -323,11 +461,10 @@ document.getElementById('form').addEventListener('submit', async (e) => {
 
   addLog(`➕ Новая запись: ${item.name} — ${formatDateRu(item.date)} ${item.time}`, 'ok');
 
-  // Подтверждение клиенту сразу (как «вы записаны»)
   await sendEmail({
     to: item.email,
     subject: 'Вы записаны на диагностику',
-    body: `Здравствуйте, ${item.name}! Вы записаны на диагностику ${formatDateRu(item.date)} в ${item.time}. Адрес: [укажите адрес].`
+    body: `Здравствуйте, ${item.name}! Вы записаны на диагностику ${formatDateRu(item.date)} в ${item.time}.${item.address ? ` Адрес: ${item.address}.` : ''}`
   });
 
   e.target.reset();
@@ -342,17 +479,15 @@ loadLog();
 renderLog();
 renderList();
 
-// Ставим дату по умолчанию — завтра (удобно для теста)
 const tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
 document.getElementById('date').value = tomorrow.toISOString().slice(0, 10);
 document.getElementById('time').value = '10:00';
 
-// Первичная проверка и далее каждые 60 секунд
 checkReminders();
 setInterval(() => checkReminders(false), 60 * 1000);
 
-addLog('🚀 Локальная версия запущена. Проверка напоминаний — раз в минуту.', '');
+addLog('🚀 Локальная версия запущена.', '');
 </script>
 
 </body>
