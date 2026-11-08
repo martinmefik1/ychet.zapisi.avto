@@ -37,7 +37,7 @@
 
     .app { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
 
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px; color: #fff; }
     .site-logo { height: 45px; width: auto; object-fit: contain; border-radius: 8px; }
     .brand-text { display: flex; flex-direction: column; }
@@ -49,7 +49,12 @@
     .brand-sub { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; }
     @keyframes rgbShift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-    .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    /* ПЕРЕСТАВЛЕННЫЕ ЭЛЕМЕНТЫ ШАПКИ */
+    .header-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+    .controls-row { display: flex; align-items: center; gap: 12px; }
+    @media (max-width: 768px) { 
+      .header-controls { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; } 
+    }
     
     /* Кнопка уведомлений */
     .btn-notify {
@@ -59,7 +64,6 @@
     .btn-notify.btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); animation: pulse 2s infinite; }
     .btn-notify.btn-ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
     .btn-notify.btn-err { background: var(--err-bg); color: var(--err); border-color: var(--err); }
-    
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
 
     .badge-cloud { font-size: 0.8rem; font-weight: 600; background: var(--ok-bg); color: var(--ok); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--ok); box-shadow: 0 0 15px var(--ok-bg); }
@@ -75,7 +79,7 @@
     #rgb-toggle { display: none; }
 
     .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
-    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.5rem; } .header-controls { width: 100%; justify-content: space-between; } }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.5rem; } }
 
     .card { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
     .card h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
@@ -194,7 +198,6 @@
     </div>
   </div>
 
-  <!-- ИСПРАВЛЕННЫЙ ЭКРАН ПОДТВЕРЖДЕНИЯ -->
   <div id="confirm-screen">
     <div class="cancel-content">
       <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
@@ -214,20 +217,25 @@
           <span class="brand-sub">Учет записей</span>
         </div>
       </h1>
+      
+      <!-- НОВОЕ РАСПОЛОЖЕНИЕ ЭЛЕМЕНТОВ -->
       <div class="header-controls">
-        <!-- Кнопка уведомлений всегда на виду -->
-        <button class="btn-notify" id="notify-btn" onclick="requestNotifPermission()">🔔 Проверка...</button>
-        
-        <label class="toggle-container">
-          <input type="checkbox" id="rgb-toggle" onchange="toggleRGB(this)">
-          <span class="toggle-switch"></span> 🌈 RGB
-        </label>
-        <label class="toggle-container">
-          <input type="checkbox" id="ny-toggle" onchange="toggleNewYear(this)">
-          <span class="toggle-switch"></span> 🎄 Новый год
-        </label>
-        <span class="badge-cloud" id="status-badge">🟢 Онлайн</span>
+        <div class="controls-row">
+          <label class="toggle-container">
+            <input type="checkbox" id="ny-toggle" onchange="toggleNewYear(this)">
+            <span class="toggle-switch"></span> 🎄 Новый год
+          </label>
+          <label class="toggle-container">
+            <input type="checkbox" id="rgb-toggle" onchange="toggleRGB(this)">
+            <span class="toggle-switch"></span> 🌈 RGB
+          </label>
+        </div>
+        <div class="controls-row">
+          <button class="btn-notify" id="notify-btn" onclick="requestNotifPermission()">🔔 Проверка...</button>
+          <span class="badge-cloud" id="status-badge">🟢 Онлайн</span>
+        </div>
       </div>
+
     </div>
 
     <div class="log-wrapper">
@@ -324,11 +332,6 @@
     /* УВЕДОМЛЕНИЯ */
     function checkNotificationStatus() {
       const btn = document.getElementById('notify-btn');
-      
-      // Проверка на iOS (Safari)
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-
       if (!("Notification" in window)) {
         btn.className = 'btn-notify btn-err';
         btn.innerHTML = '🚫 Нет поддержки';
@@ -351,39 +354,23 @@
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
-      // Особая логика для iOS
       if (isIOS && !isStandalone) {
         alert('На iPhone уведомления работают ТОЛЬКО если добавить сайт на экран "Домой".\n\n1. Нажмите кнопку "Поделиться" (квадрат со стрелкой вверх) в Safari.\n2. Выберите "На экран Домой".\n3. Откройте сайт с иконки на рабочем столе и нажмите эту кнопку там.');
         return;
       }
 
-      if (!("Notification" in window)) {
-        showToast('Ваш браузер не поддерживает уведомления', 'error');
-        return;
-      }
-
-      if (Notification.permission === "granted") {
-        showToast('Уведомления уже включены!', 'success');
-        return;
-      }
-
-      if (Notification.permission === "denied") {
-        alert('Вы ранее заблокировали уведомления. Чтобы их включить, нажмите на замочек 🔒 (или значок настроек) рядом с адресом сайта в браузере и выберите "Разрешить уведомления".');
-        return;
-      }
+      if (!("Notification" in window)) { showToast('Браузер не поддерживает', 'error'); return; }
+      if (Notification.permission === "granted") { showToast('Уже включены!', 'success'); return; }
+      if (Notification.permission === "denied") { alert('Вы заблокировали уведомления. Нажмите на замочек 🔒 рядом с адресом сайта и разрешите их.'); return; }
 
       try {
         const permission = await Notification.requestPermission();
         if (permission === "granted") {
-          showToast('Уведомления успешно включены!');
-          new Notification("VAG FEATURE", { body: "Отлично! Теперь вы будете получать уведомления.", icon: LOGO_URL });
-        } else if (permission === "denied") {
-          showToast('Вы отклонили уведомления', 'error');
+          showToast('Уведомления включены!');
+          new Notification("VAG FEATURE", { body: "Теперь вы будете получать уведомления.", icon: LOGO_URL });
         }
         checkNotificationStatus();
-      } catch (e) {
-        showToast('Ошибка при запросе уведомлений', 'error');
-      }
+      } catch (e) { showToast('Ошибка', 'error'); }
     }
 
     /* ОТПРАВКА ПИСЕМ */
@@ -404,7 +391,7 @@
       }
     }
 
-    /* ГЕНЕРАЦИЯ ФАЙЛА ДЛЯ СИСТЕМНОГО КАЛЕНДАРЯ (.ics) */
+    /* КАЛЕНДАРЬ (.ics) */
     function getICSLink(title, date, time, address, car) {
       if (!date || !time) return '';
       const [d, m, y] = date.split('.');
@@ -412,7 +399,6 @@
       const start = `${y}${m}${d}T${hh}${mm}00`;
       const endHour = (parseInt(hh) + 1).toString().padStart(2, '0');
       const end = `${y}${m}${d}T${endHour}${mm}00`;
-      
       const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//VAG FEATURE//Diagnostics//RU\r\nBEGIN:VEVENT\r\nSUMMARY:Диагностика VAG FEATURE\r\nDTSTART:${start}\r\nDTEND:${end}\r\nDESCRIPTION:Автомобиль: ${car}\\nМастер: Андрей +7 (977) 477-05-87\r\nLOCATION:${address || 'По договоренности'}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
       return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`;
     }
@@ -906,9 +892,8 @@
       } else { document.getElementById('garland').innerHTML = ''; document.getElementById('snow-container').innerHTML = ''; }
     }
 
-    /* ИНИЦИАЛИЗАЦИЯ */
+    /* ИНИЦИАЛИЗАЦИЯ И ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ НА САЙТ */
     (async () => {
-      // Устанавливаем статус кнопки уведомлений
       checkNotificationStatus();
 
       if (localStorage.getItem('rgb_mode') === 'true') { document.getElementById('rgb-toggle').checked = true; toggleRGB(document.getElementById('rgb-toggle')); }
@@ -932,8 +917,17 @@
             renderList(); 
           }).subscribe();
 
-        // Резервное обновление каждые 15 секунд
+        // Фоновое обновление каждые 15 секунд (пока сайт открыт)
         setInterval(() => { renderList(); }, 15000);
+
+        // МГНОВЕННОЕ обновление при возврате на вкладку (разблокировке телефона)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            addLog('🔄 Возврат на сайт, обновление...', 'ok');
+            renderList();
+            checkReminders();
+          }
+        });
 
         checkReminders(); 
         setInterval(() => checkReminders(), 60000);
