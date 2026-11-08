@@ -166,7 +166,6 @@
       100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
     }
 
-    /* ЭКРАНЫ */
     #cancel-screen, #confirm-screen, #sign-screen, #warranty-screen, #view-act-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
     .cancel-content { max-width: 400px; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -195,7 +194,6 @@
     .warranty-body { padding: 40px 30px; }
     .warranty-footer { background: #0f172a; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
 
-    /* ЧИСТЫЕ СТИЛИ ДЛЯ ПЕЧАТИ (СКАЧИВАНИЯ PDF) */
     @media print {
       body { background: #fff !important; padding: 0; margin: 0; }
       body * { visibility: hidden; }
@@ -234,7 +232,7 @@
   <div id="confirm-screen">
     <div class="cancel-content">
       <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
-      <div class="confirm-title">Визит подтвержден!</div>
+      <div class="confirm-title">Запись подтверждена!</div>
       <div class="cancel-text">Спасибо! Мы получили ваше подтверждение.<br>Мастер уже уведомлен.<br><br><span style="font-size: 0.9rem; opacity: 0.7;">Вы можете закрыть эту вкладку.</span></div>
     </div>
   </div>
@@ -265,8 +263,7 @@
   <div id="warranty-screen">
     <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 600px; margin: auto; position: relative; z-index: 10000;">
       <div class="warranty-content" id="warranty-content"></div>
-      <button type="button" class="no-print" onclick="window.print()" style="position: relative; z-index: 100000; background: var(--accent); color: #fff; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 15px rgba(99,102,241,0.4); cursor: pointer;">🖨️ Скачать в PDF / Распечатать</button>
-      <!-- ИСПРАВЛЕНА ССЫЛКА НА ГЛАВНУЮ (window.location.pathname) -->
+      <p class="no-print" style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">Сделайте скриншот этой страницы или сохраните письмо как подтверждение гарантии на 7 дней.</p>
       <button type="button" class="no-print" onclick="window.location.href = window.location.pathname;" style="background: transparent; color: var(--text-muted); padding: 10px; font-size: 1rem; cursor: pointer; border: none;">← Вернуться на главную</button>
     </div>
   </div>
@@ -275,7 +272,6 @@
     <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 600px; margin: auto; position: relative; z-index: 10000;">
       <div class="act-content" id="view-act-content"></div>
       <button type="button" class="no-print" onclick="window.print()" style="position: relative; z-index: 100000; background: var(--accent); color: #fff; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 15px rgba(99,102,241,0.4); cursor: pointer;">🖨️ Скачать акт (PDF) / Распечатать</button>
-      <!-- ИСПРАВЛЕНА ССЫЛКА НА ГЛАВНУЮ (window.location.pathname) -->
       <button type="button" class="no-print" onclick="window.location.href = window.location.pathname;" style="background: transparent; color: var(--text-muted); padding: 10px; font-size: 1rem; cursor: pointer; border: none;">← Вернуться на главную</button>
     </div>
   </div>
@@ -465,12 +461,15 @@
       const endHour = (parseInt(hh) + 1).toString().padStart(2, '0');
       const end = `${y}${m}${d}T${endHour}${mm}00`;
       const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//VAG FEATURE//Diagnostics//RU\r\nBEGIN:VEVENT\r\nSUMMARY:Диагностика VAG FEATURE\r\nDTSTART:${start}\r\nDTEND:${end}\r\nDESCRIPTION:Автомобиль: ${car}\\nМастер: Андрей +7 (977) 477-05-87\r\nLOCATION:${address || 'По договоренности'}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
-      return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`;
+      
+      // Создаем Blob вместо data URI для лучшей совместимости
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      return URL.createObjectURL(blob);
     }
 
     /* ШАБЛОНЫ ПИСЕМ */
     function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false, isSignBtn = false }) {
-      const mainText = introText || 'Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:';
+      const mainText = introText || 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже представлена подробная информация о вашем визите:';
       let calendarLink = getICSLink('Диагностика', date, time, address, car);
       const fPrice = price ? formatPrice(price) : '';
 
@@ -513,10 +512,10 @@
 
             ${(isCancelBtn || isConfirmBtn || isSignBtn) ? `
               <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e2e8f0;">
-                ${isConfirmBtn ? `<p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Пожалуйста, подтвердите ваш визит или отмените его:</p>` : ''}
+                ${isConfirmBtn ? `<p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Пожалуйста, подтвердите запись или отмените её:</p>` : ''}
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
                   ${isSignBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?sign=${id}" style="background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);">📝 Ознакомиться и подписать акт</a></td></tr>` : ''}
-                  ${isConfirmBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?confirm=${id}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">✅ Подтвердить визит</a></td></tr>` : ''}
+                  ${isConfirmBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?confirm=${id}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">✅ Подтвердить запись</a></td></tr>` : ''}
                   ${isCancelBtn ? `<tr><td align="center"><a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">❌ Отменить запись</a></td></tr>` : ''}
                 </table>
               </div>
@@ -560,9 +559,9 @@
               </p>
             </div>
 
-            <div style="text-align: center; margin-top: 30px;">
-              <a href="${SITE_URL}?warranty=${id}" style="background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);">📥 Скачать сертификат (PDF)</a>
-            </div>
+            <p style="font-size: 14px; color: #64748b; margin-top: 30px; text-align: center;">
+              <i>Сделайте скриншот этого письма или сохраните его как подтверждение гарантии на 7 дней.</i>
+            </p>
           </div>
 
           <div style="background: #0f172a; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
@@ -818,19 +817,6 @@
 
     /* НАДЕЖНОЕ КОПИРОВАНИЕ НОМЕРА */
     function copyToClipboard(text) {
-      // Попытка 1: Современный API
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast('Номер скопирован!', 'success');
-        }).catch(() => {
-          fallbackCopy(text);
-        });
-      } else {
-        fallbackCopy(text);
-      }
-    }
-
-    function fallbackCopy(text) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
@@ -923,10 +909,10 @@
       const html = getEmailTemplate({
         id: it.id, title: 'Напоминание о визите', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
         isCancelBtn: true, isConfirmBtn: true, cancelLink: `${SITE_URL}?cancel=${it.id}`,
-        introText: 'Мастер напоминает о вашей записи на диагностику. Пожалуйста, подтвердите ваши планы или сообщите нам, если обстоятельства изменились.'
+        introText: 'Мастер напоминает о вашей записи на диагностику. Пожалуйста, подтвердите запись или сообщите нам, если обстоятельства изменились.'
       });
 
-      const ok = await sendEmail({ to: it.email, subject: 'Напоминание: подтвердите визит', body: html });
+      const ok = await sendEmail({ to: it.email, subject: 'Напоминание: подтвердите запись', body: html });
       
       if (ok) {
         await db.from('appointments').update({ manual_reminder_sent: true }).eq('id', it.id);
@@ -994,7 +980,7 @@
           if (timeUntil <= 3 * 60 * 60 * 1000) {
             const html = getEmailTemplate({ 
               id: it.id, title: 'Напоминание: через 3 часа', color: '#f59e0b', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time, address: it.address, isCancelBtn: true, isConfirmBtn: true, cancelLink,
-              introText: 'Напоминаем, что уже через 3 часа у вас запланирована диагностика. Пожалуйста, подтвердите визит.'
+              introText: 'Напоминаем, что уже через 3 часа у вас запланирована диагностика. Пожалуйста, подтвердите запись.'
             });
             if (await sendEmail({ to: it.email, subject: 'Напоминание: через 3 часа', body: html })) {
               await db.from('appointments').update({ reminder_3h_sent: true }).eq('id', it.id); sentCount++;
@@ -1031,7 +1017,7 @@
         const appt = rows[0];
         await db.from('appointments').update({ is_confirmed: true }).eq('id', confirmId);
         if ("Notification" in window && Notification.permission === "granted") {
-          try { new Notification("✅ Клиент подтвердил визит!", { body: `${appt.name}`, icon: LOGO_URL }); } catch(e) {}
+          try { new Notification("✅ Клиент подтвердил запись!", { body: `${appt.name}`, icon: LOGO_URL }); } catch(e) {}
         }
         const masterHtml = getEmailTemplate({ 
           id: appt.id, title: 'Подтверждение', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
@@ -1050,17 +1036,13 @@
       const { data: appt } = await db.from('appointments').select('*').eq('id', signId).single();
       
       if (appt) {
-        const fPrice = appt.price ? formatPrice(appt.price) : 'По договоренности';
         document.getElementById('agreement-text').innerHTML = `
           <p style="text-align: center; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">АКТ ВЫПОЛНЕННЫХ РАБОТ</p>
           <p><b>Исполнитель:</b> VAG FEATURE (Самозанятый Андрей Ш.)</p>
           <p><b>Заказчик:</b> ${escapeHtml(appt.name)}</p>
-          <p><b>Автомобиль:</b> ${escapeHtml(appt.car)}</p>
-          <p><b>Дата и время:</b> ${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}</p>
           <hr style="margin: 10px 0; border: none; border-top: 1px solid #475569;">
-          <p><b>Стоимость работ:</b> <span style="color: #10b981; font-weight: bold;">${fPrice}</span></p>
-          <p>Я, как Заказчик, подтверждаю, что работы выполнены в полном объеме и с надлежащим качеством. Претензий к внешнему виду и работоспособности автомобиля не имею.</p>
-          <p>Я ознакомлен(а) с условиями гарантии на выполненные работы сроком на <b>7 (семь) дней</b> с момента подписания настоящего акта.</p>
+          <p>Я, как Заказчик, подтверждаю, что работы по моему автомобилю выполнены в полном объеме и с надлежащим качеством. Претензий к внешнему виду и работоспособности автомобиля не имею.</p>
+          <p>Я ознакомлен(а) с условиями предоставления гарантии на выполненные работы сроком на <b>7 (семь) дней</b> с момента подписания настоящего акта.</p>
           <p>В случае выявления недостатков в течение гарантийного срока, Исполнитель обязуется устранить их за свой счет в соответствии со <b>ст. 29 Закона РФ «О защите прав потребителей»</b> и <b>ст. 724 Гражданского кодекса РФ</b>.</p>
         `;
         setTimeout(initCanvas, 100); 
@@ -1141,6 +1123,10 @@
                 <b>Условия гарантии:</b> Если в течение 7 дней с момента подписания акта вы обнаружите недостатки выполненных работ, мы обязуемся устранить их бесплатно.
               </p>
             </div>
+            
+            <p style="font-size: 14px; color: #64748b; margin-top: 30px; text-align: center;">
+              <i>Сделайте скриншот этой страницы или сохраните письмо как подтверждение гарантии на 7 дней.</i>
+            </p>
           </div>
 
           <div class="warranty-footer">
@@ -1175,7 +1161,7 @@
         
         const html = getEmailTemplate({ 
           id: data[0].id, title: 'Запись создана', color: '#10b981', name: item.name, car: item.car, price: item.price, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
-          introText: 'Благодарим за доверие. Ваша запись успешно подтверждена. Ниже представлена подробная информация о вашем визите:'
+          introText: 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже представлена подробная информация о вашем визите:'
         });
         await sendEmail({ to: item.email, subject: 'Запись на диагностику создана', body: html });
 
