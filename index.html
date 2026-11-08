@@ -452,25 +452,9 @@
       }
     }
 
-    /* КАЛЕНДАРЬ (.ics) */
-    function getICSLink(title, date, time, address, car) {
-      if (!date || !time) return '';
-      const [d, m, y] = date.split('.');
-      const [hh, mm] = time.split(':');
-      const start = `${y}${m}${d}T${hh}${mm}00`;
-      const endHour = (parseInt(hh) + 1).toString().padStart(2, '0');
-      const end = `${y}${m}${d}T${endHour}${mm}00`;
-      const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//VAG FEATURE//Diagnostics//RU\r\nBEGIN:VEVENT\r\nSUMMARY:Диагностика VAG FEATURE\r\nDTSTART:${start}\r\nDTEND:${end}\r\nDESCRIPTION:Автомобиль: ${car}\\nМастер: Андрей +7 (977) 477-05-87\r\nLOCATION:${address || 'По договоренности'}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
-      
-      // Создаем Blob вместо data URI для лучшей совместимости
-      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-      return URL.createObjectURL(blob);
-    }
-
     /* ШАБЛОНЫ ПИСЕМ */
-    function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false, isSignBtn = false }) {
+    function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false }) {
       const mainText = introText || 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже представлена подробная информация о вашем визите:';
-      let calendarLink = getICSLink('Диагностика', date, time, address, car);
       const fPrice = price ? formatPrice(price) : '';
 
       return `
@@ -497,8 +481,6 @@
               </table>
             </div>
 
-            ${calendarLink ? `<div style="text-align: center; margin-bottom: 25px;"><a href="${calendarLink}" download="VAG_FEATURE_Diagnostika.ics" style="background: #f1f5f9; color: #3b82f6; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #cbd5e1; display: inline-block;">📅 Добавить в календарь</a></div>` : ''}
-
             ${!isMaster ? `
             <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 25px;">
               <p style="margin: 0 0 12px 0; font-size: 15px; color: #92400e; font-weight: 600;">💡 Рекомендация от мастеров</p>
@@ -510,17 +492,46 @@
               <p style="margin: 0; font-size: 14px; color: #166534;">Если ваши планы изменились, свяжитесь с нами:<br><a href="tel:+79774770587" style="color: #15803d; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; margin-top: 5px;">+7 (977) 477-05-87 (Андрей)</a></p>
             </div>
 
-            ${(isCancelBtn || isConfirmBtn || isSignBtn) ? `
+            ${(isCancelBtn || isConfirmBtn) ? `
               <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e2e8f0;">
                 ${isConfirmBtn ? `<p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Пожалуйста, подтвердите запись или отмените её:</p>` : ''}
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
-                  ${isSignBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?sign=${id}" style="background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);">📝 Ознакомиться и подписать акт</a></td></tr>` : ''}
                   ${isConfirmBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?confirm=${id}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">✅ Подтвердить запись</a></td></tr>` : ''}
                   ${isCancelBtn ? `<tr><td align="center"><a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">❌ Отменить запись</a></td></tr>` : ''}
                 </table>
               </div>
             ` : ''}
             ` : ''}
+          </div>
+
+          <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+            Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.<br>© 2026 VAG FEATURE
+          </div>
+        </div>
+      </div>`;
+    }
+
+    /* МИНИМАЛИСТИЧНЫЙ ШАБЛОН ДЛЯ ЗАПРОСА ПОДПИСИ (БЕЗ ЛИШНЕЙ ИНФОРМАЦИИ) */
+    function getSignRequestTemplate({ id, name }) {
+      return `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+          
+          <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid #6366f1;">
+            <img src="${LOGO_URL}" alt="VAG FEATURE" style="max-width: 120px; height: auto; margin-bottom: 15px; border-radius: 8px; display: inline-block;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px;">VAG FEATURE</h1>
+            <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Акт выполненных работ</p>
+          </div>
+          
+          <div style="padding: 40px 30px; color: #334155;">
+            <p style="font-size: 18px; margin-top: 0; font-weight: 600; color: #0f172a;">Здравствуйте, ${name}!</p>
+            <p style="font-size: 15px; color: #475569; margin-bottom: 30px;">
+              Работы по вашему автомобилю завершены. Пожалуйста, ознакомьтесь с актом и поставьте свою подпись для подтверждения качества и получения гарантии на 7 дней.
+            </p>
+            
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="${SITE_URL}?sign=${id}" style="background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);">📝 Ознакомиться и подписать акт</a>
+            </div>
           </div>
 
           <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
@@ -732,16 +743,12 @@
       showToast('Отчет скачан!');
     }
 
-    /* ОТПРАВКА АКТА НА ПОДПИСЬ */
+    /* ОТПРАВКА АКТА НА ПОДПИСЬ (ТЕПЕРЬ БЕЗ ЛИШНЕЙ ИНФОРМАЦИИ) */
     async function sendSignRequest(id) {
       const { data: it, error } = await db.from('appointments').select('*').eq('id', id).single();
       if (error || !it) { showToast('Ошибка', 'error'); return; }
 
-      const html = getEmailTemplate({
-        id: it.id, title: 'Акт выполненных работ', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
-        isSignBtn: true, isCancelBtn: false, isConfirmBtn: false, cancelLink: '',
-        introText: 'Работы по вашему автомобилю завершены! Пожалуйста, ознакомьтесь с актом и поставьте свою подпись для подтверждения качества и получения гарантии на 7 дней.'
-      });
+      const html = getSignRequestTemplate({ id: it.id, name: it.name });
 
       if (await sendEmail({ to: it.email, subject: 'Акт выполненных работ (VAG FEATURE)', body: html })) {
         showToast(`Ссылка на акт отправлена: ${it.name}`);
@@ -815,23 +822,40 @@
       document.getElementById('btn-submit-sign').disabled = !(hasDrawn && isAgreed);
     }
 
-    /* НАДЕЖНОЕ КОПИРОВАНИЕ НОМЕРА */
+    /* САМЫЙ НАДЕЖНЫЙ МЕТОД КОПИРОВАНИЯ (РАБОТАЕТ ВЕЗДЕ) */
     function copyToClipboard(text) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
+      
+      // Делаем элемент невидимым, но не display:none (иначе не скопируется на iOS)
       textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
       textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.width = "2em";
+      textArea.style.height = "2em";
+      textArea.style.padding = "0";
+      textArea.style.border = "none";
+      textArea.style.outline = "none";
+      textArea.style.boxShadow = "none";
+      textArea.style.background = "transparent";
+      textArea.style.opacity = "0";
+      
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
+      textArea.setSelectionRange(0, 99999); // Для мобильных устройств
+
       try {
         const successful = document.execCommand('copy');
-        if (successful) showToast('Номер скопирован!', 'success');
-        else showToast('Не удалось скопировать. Выделите вручную.', 'error');
+        if (successful) {
+          showToast('Номер скопирован!', 'success');
+        } else {
+          showToast('Не удалось скопировать. Зажмите и выделите вручную.', 'error');
+        }
       } catch (err) {
         showToast('Не удалось скопировать', 'error');
       }
+      
       document.body.removeChild(textArea);
     }
 
