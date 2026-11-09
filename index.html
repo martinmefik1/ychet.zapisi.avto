@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>VAG FEATURE — Портал</title>
+  <title>VAG FEATURE — Учет записей</title>
   
   <!-- PWA настройки для iPhone -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,9 +17,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   
   <style>
-    /* =========================================
-       1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (ЦВЕТА)
-       ========================================= */
     :root {
       --bg: #0b1120; 
       --card-bg: rgba(30, 41, 59, 0.95);
@@ -37,14 +34,7 @@
       --text-muted: #94a3b8;
     }
 
-    /* =========================================
-       2. БАЗОВЫЕ СТИЛИ И СБРОС
-       ========================================= */
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -54,436 +44,120 @@
         radial-gradient(circle at 100% 0%, rgba(0, 255, 0, 0.12) 0%, transparent 40%),
         radial-gradient(circle at 100% 100%, rgba(0, 0, 255, 0.12) 0%, transparent 40%),
         radial-gradient(circle at 0% 100%, rgba(255, 0, 255, 0.12) 0%, transparent 40%);
-      background-attachment: fixed; 
-      color: var(--text); 
-      min-height: 100vh; 
-      padding: 24px 20px; 
-      line-height: 1.5;
-      -webkit-tap-highlight-color: transparent; 
-      overflow-x: hidden; 
-      position: relative;
+      background-attachment: fixed; color: var(--text); min-height: 100vh; padding: 24px 20px; line-height: 1.5;
+      -webkit-tap-highlight-color: transparent; overflow-x: hidden; position: relative;
     }
 
-    .app { 
-      max-width: 1400px; 
-      margin: 0 auto; 
-      position: relative; 
-      z-index: 2; 
-    }
+    .app { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
 
     /* Плашка для вывода глобальных ошибок */
     #global-error {
-      display: none; 
-      position: fixed; 
-      top: 10px; 
-      left: 50%; 
-      transform: translateX(-50%);
-      background: var(--err); 
-      color: #fff; 
-      padding: 15px 25px; 
-      border-radius: 10px;
-      font-weight: 600; 
-      z-index: 999999; 
-      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
-      text-align: center; 
-      max-width: 90%; 
-      font-size: 0.9rem;
+      display: none; position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      background: var(--err); color: #fff; padding: 15px 25px; border-radius: 10px;
+      font-weight: 600; z-index: 999999; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+      text-align: center; max-width: 90%; font-size: 0.9rem;
     }
 
-    /* =========================================
-       3. ШАПКА САЙТА
-       ========================================= */
-    .header { 
-      display: flex; 
-      align-items: flex-start; 
-      justify-content: space-between; 
-      margin-bottom: 24px; 
-      flex-wrap: wrap; 
-      gap: 16px; 
-    }
-
-    .header h1 { 
-      font-size: 1.8rem; 
-      font-weight: 800; 
-      letter-spacing: -0.02em; 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-      color: #fff; 
-    }
-
-    .site-logo { 
-      height: 45px; 
-      width: auto; 
-      object-fit: contain; 
-      border-radius: 8px; 
-    }
-
-    .brand-text { 
-      display: flex; 
-      flex-direction: column; 
-    }
-
+    /* ШАПКА */
+    .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px; color: #fff; }
+    .site-logo { height: 45px; width: auto; object-fit: contain; border-radius: 8px; }
+    .brand-text { display: flex; flex-direction: column; }
     .brand-title {
       background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1);
-      background-size: 300% 100%; 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent;
-      animation: rgbShift 5s linear infinite; 
-      line-height: 1.2;
+      background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      animation: rgbShift 5s linear infinite; line-height: 1.2;
     }
+    .brand-sub { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; }
+    @keyframes rgbShift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-    .brand-sub { 
-      font-size: 0.8rem; 
-      font-weight: 500; 
-      color: var(--text-muted); 
-      letter-spacing: 1px; 
-    }
-
-    @keyframes rgbShift { 
-      0% { background-position: 0% 50%; } 
-      100% { background-position: 100% 50%; } 
-    }
-
-    .header-controls { 
-      display: flex; 
-      flex-direction: column; 
-      align-items: flex-end; 
-      gap: 10px; 
-    }
-
-    .controls-row { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-    }
-
-    @media (max-width: 768px) { 
-      .header-controls { 
-        width: 100%; 
-        flex-direction: row; 
-        flex-wrap: wrap; 
-        justify-content: space-between; 
-      } 
-    }
-
-    /* =========================================
-       4. КНОПКИ И ТУМБЛЕРЫ
-       ========================================= */
+    .header-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+    .controls-row { display: flex; align-items: center; gap: 12px; }
+    @media (max-width: 768px) { .header-controls { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; } }
+    
     .btn-notify {
-      padding: 6px 14px; 
-      border-radius: 999px; 
-      font-size: 0.8rem; 
-      font-weight: 600; 
-      border: 1px solid transparent;
-      display: inline-flex; 
-      align-items: center; 
-      gap: 6px; 
-      cursor: pointer; 
-      transition: all 0.3s; 
-      white-space: nowrap;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s; white-space: nowrap;
     }
+    .btn-notify.btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); animation: pulse 2s infinite; }
+    .btn-notify.btn-ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+    .btn-notify.btn-err { background: var(--err-bg); color: var(--err); border-color: var(--err); }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
 
-    .btn-notify.btn-warn { 
-      background: var(--warn-bg); 
-      color: var(--warn); 
-      border-color: var(--warn); 
-      animation: pulse 2s infinite; 
-    }
-    
-    .btn-notify.btn-ok { 
-      background: var(--ok-bg); 
-      color: var(--ok); 
-      border-color: var(--ok); 
-    }
-    
-    .btn-notify.btn-err { 
-      background: var(--err-bg); 
-      color: var(--err); 
-      border-color: var(--err); 
-    }
+    .badge-cloud { font-size: 0.8rem; font-weight: 600; background: var(--ok-bg); color: var(--ok); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--ok); }
 
-    @keyframes pulse { 
-      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 
-      70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); } 
-      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } 
-    }
-
-    .toggle-container { 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      font-size: 0.85rem; 
-      font-weight: 600; 
-      color: var(--text-muted); 
-      cursor: pointer; 
-      user-select: none; 
-    }
-
-    .toggle-switch { 
-      position: relative; 
-      width: 44px; 
-      height: 24px; 
-      background: var(--border); 
-      border-radius: 12px; 
-      transition: 0.3s; 
-    }
-
-    .toggle-switch::after { 
-      content: ''; 
-      position: absolute; 
-      top: 2px; 
-      left: 2px; 
-      width: 20px; 
-      height: 20px; 
-      background: white; 
-      border-radius: 50%; 
-      transition: 0.3s; 
-    }
-
-    #ny-toggle:checked + .toggle-switch { background: var(--err); }
+    /* ТУМБЛЕРЫ */
+    .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; user-select: none; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--border); border-radius: 12px; transition: 0.3s; }
+    .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
+    #ny-toggle:checked + .toggle-switch { background: var(--err); box-shadow: 0 0 10px var(--err-bg); }
     #ny-toggle:checked + .toggle-switch::after { transform: translateX(20px); }
     #ny-toggle { display: none; }
-
-    #rgb-toggle:checked + .toggle-switch { background: #a855f7; }
+    #rgb-toggle:checked + .toggle-switch { background: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
     #rgb-toggle:checked + .toggle-switch::after { transform: translateX(20px); }
     #rgb-toggle { display: none; }
 
-    /* =========================================
-       5. СЕТКА И КАРТОЧКИ
-       ========================================= */
-    .grid { 
-      display: grid; 
-      grid-template-columns: 380px 1fr; 
-      gap: 24px; 
-      align-items: start; 
-    }
+    /* СЕТКА */
+    .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.5rem; } }
 
-    @media (max-width: 1024px) { 
-      .grid { grid-template-columns: 1fr; } 
-      .header h1 { font-size: 1.5rem; } 
-    }
+    /* КАРТОЧКИ */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; }
+    .card h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 
-    .card { 
-      background: var(--card-bg); 
-      border: 1px solid var(--border); 
-      border-radius: 16px; 
-      padding: 24px; 
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
-      position: relative; 
-    }
+    /* ФОРМА */
+    label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin: 14px 0 6px; }
+    input, textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; font-family: inherit; background: rgba(15, 23, 42, 0.6); color: var(--text); transition: all 0.3s ease; }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); background: rgba(30, 41, 59, 0.9); box-shadow: 0 0 0 3px var(--accent-glow); }
+    textarea { resize: vertical; min-height: 60px; }
+    .row { display: flex; gap: 12px; width: 100%; }
+    .row > div { flex: 1; min-width: 0; }
+    .row input { width: 100%; max-width: 100%; }
+    @media (max-width: 480px) { .row { flex-direction: column; gap: 0; } .row > div { width: 100%; } }
 
-    .card h2 { 
-      font-size: 1.15rem; 
-      font-weight: 600; 
-      margin-bottom: 20px; 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-    }
-
-    /* =========================================
-       6. ФОРМЫ И ИНПУТЫ
-       ========================================= */
-    label { 
-      display: block; 
-      font-size: 0.85rem; 
-      font-weight: 500; 
-      color: var(--text); 
-      margin: 14px 0 6px; 
-    }
-
-    input, textarea { 
-      width: 100%; 
-      padding: 12px 14px; 
-      border: 1px solid var(--border); 
-      border-radius: 10px; 
-      font-size: 16px; 
-      font-family: inherit; 
-      background: rgba(15, 23, 42, 0.6); 
-      color: var(--text); 
-      transition: all 0.3s ease; 
-    }
-
-    input:focus, textarea:focus { 
-      outline: none; 
-      border-color: var(--accent); 
-      background: rgba(30, 41, 59, 0.9); 
-      box-shadow: 0 0 0 3px var(--accent-glow); 
-    }
-
-    textarea { 
-      resize: vertical; 
-      min-height: 60px; 
-    }
-
-    .row { 
-      display: flex; 
-      gap: 12px; 
-      width: 100%; 
-    }
-
-    .row > div { 
-      flex: 1; 
-      min-width: 0; 
-    }
-
-    @media (max-width: 480px) { 
-      .row { flex-direction: column; gap: 0; } 
-      .row > div { width: 100%; } 
-    }
-
-    /* =========================================
-       7. КНОПКИ ДЕЙСТВИЙ
-       ========================================= */
-    button { 
-      cursor: pointer; 
-      border: none; 
-      border-radius: 10px; 
-      font-family: inherit; 
-      font-weight: 600; 
-      transition: all 0.2s; 
-    }
-
-    .btn-primary { 
-      width: 100%; 
-      margin-top: 24px; 
-      padding: 14px 20px; 
-      background: var(--accent); 
-      color: #fff; 
-      font-size: 1rem; 
-      box-shadow: 0 4px 15px var(--accent-glow); 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      gap: 8px; 
-    }
-
-    .btn-primary:hover { 
-      background: var(--accent-hover); 
-      transform: translateY(-2px); 
-    }
-
-    .btn-primary:disabled { 
-      opacity: 0.6; 
-      cursor: not-allowed; 
-      transform: none; 
-      box-shadow: none; 
-    }
-
-    .btn-icon { 
-      padding: 8px 12px; 
-      font-size: 0.8rem; 
-      border-radius: 8px; 
-      display: inline-flex; 
-      align-items: center; 
-      justify-content: center; 
-      gap: 6px; 
-    }
-
-    .btn-send { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); }
+    /* КНОПКИ */
+    button { cursor: pointer; border: none; border-radius: 10px; font-family: inherit; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { width: 100%; margin-top: 24px; padding: 14px 20px; background: var(--accent); color: #fff; font-size: 1rem; box-shadow: 0 4px 15px var(--accent-glow); display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    
+    .btn-icon { padding: 8px 12px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-send { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); min-width: 125px; }
     .btn-send:hover { background: var(--accent); color: #fff; }
+    .btn-send:disabled { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
     .btn-delete { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
     .btn-delete:hover { background: var(--err); color: #fff; }
     .btn-sign { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
     .btn-sign:hover { background: var(--ok); color: #fff; }
-    .btn-export { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); padding: 8px 12px; border-radius: 8px; }
+    .btn-export { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); font-size: 0.8rem; padding: 8px 12px; border-radius: 8px; }
+    .btn-export:hover { background: var(--ok); color: #fff; }
     .btn-price { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
     .btn-price:hover { background: var(--warn); color: #fff; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    .actions { 
-      display: flex; 
-      gap: 8px; 
-      flex-wrap: wrap; 
-    }
-
-    /* =========================================
-       8. ТАБЛИЦА
-       ========================================= */
-    .tabs { 
-      display: flex; 
-      gap: 10px; 
-      margin-bottom: 20px; 
-      border-bottom: 1px solid var(--border); 
-      padding-bottom: 10px; 
-    }
-
-    .tab-btn { 
-      background: transparent; 
-      color: var(--text-muted); 
-      font-size: 0.9rem; 
-      padding: 8px 16px; 
-      border-radius: 8px; 
-      cursor: pointer; 
-    }
-
-    .tab-btn.active { 
-      background: var(--accent-glow); 
-      color: var(--accent); 
-      border: 1px solid var(--accent); 
-    }
+    /* ТАБЛИЦА */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .tab-btn { background: transparent; color: var(--text-muted); border: none; font-size: 0.9rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .tab-btn.active { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
 
     .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 14px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    th { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .cell-name { font-weight: 600; margin-bottom: 4px; color: #fff; font-size: 0.95rem; }
+    .cell-sub { color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .note-cell { background: var(--warn-bg); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; color: var(--warn); border-left: 3px solid var(--warn); display: inline-block; max-width: 200px; }
 
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      font-size: 0.85rem; 
-    }
-
-    th, td { 
-      text-align: left; 
-      padding: 14px 10px; 
-      border-bottom: 1px solid var(--border); 
-      vertical-align: middle; 
-    }
-
-    th { 
-      color: var(--text-muted); 
-      font-size: 0.75rem; 
-      text-transform: uppercase; 
-      font-weight: 600; 
-    }
-
-    .cell-name { 
-      font-weight: 600; 
-      margin-bottom: 4px; 
-      color: #fff; 
-      font-size: 0.95rem; 
-    }
-
-    .cell-sub { 
-      color: var(--text-muted); 
-      font-size: 0.8rem; 
-      display: flex; 
-      align-items: center; 
-      gap: 6px; 
-      margin-top: 4px; 
-    }
-
-    .note-cell { 
-      background: var(--warn-bg); 
-      border-radius: 6px; 
-      padding: 6px 10px; 
-      font-size: 0.8rem; 
-      color: var(--warn); 
-      border-left: 3px solid var(--warn); 
-      display: inline-block; 
-      max-width: 200px; 
-    }
-
-    /* Бейджи статусов и источников */
+    /* БЕЙДЖИ */
     .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; margin-bottom: 6px; }
     .badge-sent { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
     .badge-pending { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
     .badge-signed { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; }
     .badge-archived { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid #94a3b8; }
     .badge-price { background: #fef3c7; color: #d97706; border: 1px solid #f59e0b; }
-    
-    .badge-source-client { background: rgba(255, 255, 255, 0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.2); font-size: 0.65rem; margin-left: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
-    .badge-source-master { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; font-size: 0.65rem; margin-left: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
 
-    /* Адаптация таблицы под телефон */
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -493,9 +167,7 @@
       .actions { justify-content: flex-start; margin-top: 8px; }
     }
 
-    /* =========================================
-       9. УВЕДОМЛЕНИЯ И ЛОГИ
-       ========================================= */
+    /* УВЕДОМЛЕНИЯ И ЛОГИ */
     #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; }
     .toast { background: var(--card-bg); padding: 14px 20px; border-radius: 10px; border: 1px solid var(--border); font-weight: 500; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; }
     .toast.success { border-left: 4px solid var(--ok); }
@@ -503,35 +175,20 @@
 
     .log-wrapper { margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border); background: #020617; overflow: hidden; }
     .log-header { background: #1e293b; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
-    .log-box { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #e2e8f0; padding: 12px 16px; height: 110px; overflow-y: auto; }
+    .log-box { font-family: monospace; font-size: 0.75rem; color: #e2e8f0; padding: 12px 16px; height: 110px; overflow-y: auto; }
     .log-box .t { color: #64748b; margin-right: 8px; }
     .log-box .ok { color: #4ade80; }
     .log-box .err { color: #f87171; }
 
-    /* RGB Подсветка */
     body.rgb-mode .card, body.rgb-mode .log-wrapper { animation: rgbGlow 4s linear infinite; }
     @keyframes rgbGlow { 0% { border-color: #ff0000; } 25% { border-color: #00ffd5; } 50% { border-color: #7a00ff; } 75% { border-color: #ff7300; } 100% { border-color: #ff0000; } }
 
-    /* =========================================
-       10. ЭКРАНЫ (ВХОД, ОТМЕНА, ПОДПИСЬ)
-       ========================================= */
-    #login-screen, #cancel-screen, #sign-screen, #warranty-screen, #view-act-screen, #client-success-screen { 
-      display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; 
-      align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; 
-    }
-    #login-screen { display: flex; flex-direction: column; z-index: 100000; }
+    /* ЭКРАНЫ */
+    #cancel-screen, #sign-screen, #warranty-screen, #view-act-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
     
-    .login-box { background: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border); max-width: 400px; width: 100%; margin: auto; text-align: left; }
-    .login-box h2 { text-align: center; margin-bottom: 20px; font-size: 1.5rem; color: #fff; }
-    
-    .role-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; }
-    .role-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; color: var(--text-muted); font-weight: 600; }
-    .role-tab.active { background: var(--accent); color: #fff; }
-
     .cancel-content { max-width: 400px; text-align: center; }
     .cancel-logo { max-width: 140px; width: 100%; height: auto; margin-bottom: 25px; border-radius: 12px; }
     .cancel-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--err); }
-    .success-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
     .cancel-text { font-size: 1.1rem; color: var(--text-muted); }
 
     .sign-content { max-width: 600px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); text-align: left; }
@@ -544,6 +201,7 @@
     .btn-row { display: flex; gap: 10px; }
     .btn-clear { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); padding: 10px; border-radius: 8px; width: 30%; }
     .btn-sign-submit { background: var(--ok); color: #fff; padding: 10px; border-radius: 8px; flex: 1; }
+    .btn-sign-submit:disabled { opacity: 0.5; }
 
     .warranty-content, .act-content { max-width: 600px; width: 100%; background: #fff; border-radius: 16px; overflow: hidden; border: 2px solid #10b981; color: #334155; text-align: left; }
     .warranty-header { background: #10b981; padding: 30px; text-align: center; }
@@ -566,43 +224,7 @@
   <div id="global-error"></div>
   <div id="toast-container"></div>
 
-  <!-- ЭКРАН ВХОДА -->
-  <div id="login-screen">
-    <div class="login-box">
-      <h2>Вход в систему</h2>
-      <div class="role-tabs">
-        <div class="role-tab active" id="tab-client" onclick="switchLoginRole('client')">Я Клиент</div>
-        <div class="role-tab" id="tab-master" onclick="switchLoginRole('master')">Я Сотрудник</div>
-      </div>
-
-      <div id="client-login-form">
-        <label for="client-email">Email</label>
-        <input id="client-email" type="email" placeholder="client@mail.ru">
-        <label for="client-password">Пароль</label>
-        <input id="client-password" type="password" placeholder="Минимум 6 символов">
-        <button class="btn-primary" onclick="handleClientAuth()" id="btn-client-submit">Войти / Зарегистрироваться</button>
-      </div>
-
-      <div id="master-login-form" style="display: none;">
-        <label for="master-login">Логин</label>
-        <input id="master-login" placeholder="VAG.COM">
-        <label for="master-password">Пароль</label>
-        <input id="master-password" type="password" placeholder="*******">
-        <button class="btn-primary" onclick="handleMasterAuth()">Войти как сотрудник</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАНЫ ОТВЕТОВ -->
-  <div id="client-success-screen">
-    <div class="cancel-content">
-      <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
-      <div class="success-title">Заявка создана!</div>
-      <div class="cancel-text">Письмо с деталями уже на вашей почте.<br>Если его нет во «Входящих», проверьте папку <b>«Спам»</b>.<br><br><span style="font-size: 0.9rem; opacity: 0.7;">Мастер свяжется с вами.</span></div>
-      <button onclick="closeClientSuccessScreen()" style="margin-top: 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px;">Вернуться в кабинет</button>
-    </div>
-  </div>
-
+  <!-- ЭКРАНЫ -->
   <div id="cancel-screen">
     <div class="cancel-content">
       <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
@@ -648,14 +270,14 @@
     </div>
   </div>
 
-  <!-- ГЛАВНЫЙ ЭКРАН -->
-  <div class="app" id="main-app" style="display: none;">
+  <!-- ГЛАВНЫЙ ЭКРАН (ПАНЕЛЬ МАСТЕРА) -->
+  <div class="app" id="main-app">
     <div class="header">
       <h1>
         <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="site-logo">
         <div class="brand-text">
           <span class="brand-title">VAG FEATURE</span>
-          <span class="brand-sub" id="user-role-display">Личный кабинет</span>
+          <span class="brand-sub">Учет записей</span>
         </div>
       </h1>
       
@@ -666,94 +288,61 @@
         </div>
         <div class="controls-row">
           <button class="btn-notify" id="notify-btn" onclick="requestNotifPermission()">🔔 Проверка...</button>
-          <button class="btn-icon btn-delete" onclick="logoutUser()" style="border-radius: 999px; padding: 6px 14px;">Выйти</button>
+          <span class="badge-cloud" id="status-badge">🟢 Онлайн</span>
         </div>
       </div>
     </div>
 
-    <!-- ИНТЕРФЕЙС СОТРУДНИКА -->
-    <div id="master-panel" style="display: none;">
-      <div class="log-wrapper">
-        <div class="log-header">
-          <div style="font-size: 0.75rem; color: var(--text-muted);">Системный лог</div>
-          <div>
-            <button style="background:transparent; color:var(--text-muted); font-size:0.75rem;" onclick="toggleLog()">Свернуть</button>
-            <button style="background:transparent; color:var(--text-muted); font-size:0.75rem;" onclick="clearLog()">Очистить</button>
-          </div>
-        </div>
-        <div id="log" class="log-box"></div>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <h2>➕ Новая запись (вручную)</h2>
-          <form id="form">
-            <label>Имя клиента</label><input id="name" required placeholder="Иван Петров">
-            <label>Телефон клиента</label><input id="phone" required placeholder="+7 999 123-45-67">
-            <label>Email</label><input id="email" type="email" required placeholder="client@mail.ru">
-            <label>Марка и модель авто</label><input id="car" required placeholder="Volkswagen Passat">
-            <label>💰 Сумма работы</label><input id="price" placeholder="Например: 5000">
-            <label>Адрес</label><input id="address" placeholder="ул. Ленина, 10">
-            <div class="row">
-              <div><label>Дата</label><input id="date" type="date" required></div>
-              <div><label>Время</label><input id="time" type="time" required></div>
-            </div>
-            <label>📝 Заметки для мастера</label><textarea id="notes" placeholder="Стук в подвеске..."></textarea>
-            <button class="btn-primary" type="submit" id="submit-btn">Сохранить и отправить</button>
-          </form>
-        </div>
-
-        <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h2 style="margin-bottom: 0;">📋 Все записи</h2>
-            <button class="btn-export" onclick="exportToCSV()">📥 Скачать отчет (CSV)</button>
-          </div>
-          
-          <div class="tabs">
-            <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
-            <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
-          </div>
-
-          <div id="list" class="table-wrapper">
-            <div style="color: var(--text-muted); text-align: center; padding: 20px;">Загрузка базы данных...</div>
-          </div>
+    <div class="log-wrapper">
+      <div class="log-header">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Системный лог</div>
+        <div>
+          <button style="background:transparent; color:var(--text-muted); font-size:0.75rem;" onclick="toggleLog()">Свернуть</button>
+          <button style="background:transparent; color:var(--text-muted); font-size:0.75rem;" onclick="clearLog()">Очистить</button>
         </div>
       </div>
+      <div id="log" class="log-box"></div>
     </div>
 
-    <!-- ИНТЕРФЕЙС КЛИЕНТА -->
-    <div id="client-panel" style="display: none;">
-      <div class="card" style="max-width: 600px; margin: 0 auto 24px;">
-        <h2>🚗 Оставить заявку</h2>
-        <form id="client-form">
-          <label>Ваше имя</label><input id="c-name" required placeholder="Иван Петров">
-          <label>Ваш телефон</label><input id="c-phone" required placeholder="+7 999 123-45-67">
-          <label>Ваш Email</label><input id="c-email" type="email" required readonly style="opacity: 0.7;">
-          <label>Марка и модель авто</label><input id="c-car" required placeholder="Volkswagen Passat">
-          <label>Адрес</label><input id="c-address" placeholder="ул. Ленина, 10">
+    <div class="grid">
+      <div class="card">
+        <h2>➕ Новая запись</h2>
+        <form id="form">
+          <label>Имя клиента</label><input id="name" required placeholder="Иван Петров">
+          <label>Телефон клиента</label><input id="phone" required placeholder="+7 999 123-45-67">
+          <label>Email</label><input id="email" type="email" required placeholder="client@mail.ru">
+          <label>Марка и модель авто</label><input id="car" required placeholder="Volkswagen Passat">
+          <label>💰 Сумма работы</label><input id="price" placeholder="Например: 5000">
+          <label>Адрес</label><input id="address" placeholder="ул. Ленина, 10">
           <div class="row">
-            <div><label>Дата</label><input id="c-date" type="date" required></div>
-            <div><label>Время</label><input id="c-time" type="time" required></div>
+            <div><label>Дата</label><input id="date" type="date" required></div>
+            <div><label>Время</label><input id="time" type="time" required></div>
           </div>
-          <label>📝 Опишите проблему</label><textarea id="c-notes" required placeholder="Горит Check Engine..."></textarea>
-          <button class="btn-primary" type="submit" id="c-submit-btn">Отправить заявку</button>
+          <label>📝 Заметки для мастера</label><textarea id="notes" placeholder="Стук в подвеске..."></textarea>
+          <button class="btn-primary" type="submit" id="submit-btn">Сохранить и отправить</button>
         </form>
       </div>
 
-      <div class="card" style="max-width: 600px; margin: 0 auto;">
-        <h2>📋 Мои заявки</h2>
-        <div id="client-list" class="table-wrapper">
-          <div style="color: var(--text-muted); text-align: center; padding: 20px;">Загрузка...</div>
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h2 style="margin-bottom: 0;">📋 Все записи</h2>
+          <button class="btn-export" onclick="exportToCSV()">📥 Скачать отчет (CSV)</button>
+        </div>
+        
+        <div class="tabs">
+          <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
+          <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
+        </div>
+
+        <div id="list" class="table-wrapper">
+          <div style="color: var(--text-muted); text-align: center; padding: 20px;">Загрузка базы данных...</div>
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
-    /* =========================================
-       ПЕРЕХВАТ ОШИБОК
-       ========================================= */
+    /* ПЕРЕХВАТ ОШИБОК */
     window.onerror = function(message) {
       const errDiv = document.getElementById('global-error');
       if(errDiv) {
@@ -763,9 +352,7 @@
       return false;
     };
 
-    /* =========================================
-       КОНСТАНТЫ И НАСТРОЙКИ
-       ========================================= */
+    /* КОНСТАНТЫ */
     const SUPABASE_URL = 'https://zbnsktordbudmuqvmcvs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_46Kt_R95Ri4W3ZJd0JHNwQ_c_es5diR'; 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -778,180 +365,40 @@
     const PAYMENT_BANK = 'OZON bank';
     const PAYMENT_NAME = 'Андрей Ш';
 
-    /* =========================================
-       ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-       ========================================= */
     let currentTab = 'active';
     let currentSignId = null;
-    let currentUserRole = null;
-    let currentUserEmail = null;
     let realtimeChannel = null;
 
-    /* =========================================
-       ФУНКЦИИ ЛОГИРОВАНИЯ И УВЕДОМЛЕНИЙ
-       ========================================= */
+    /* ЛОГИ */
     let logLines = [];
     function addLog(text, type = '') {
       const time = new Date().toLocaleTimeString('ru-RU');
       logLines.push({ time, text, type });
       if (logLines.length > 50) logLines.shift();
-      
       const el = document.getElementById('log');
       if(el) {
         el.innerHTML = logLines.map(l => `<div><span class="t">[${l.time}]</span><span class="${l.type}">${escapeHtml(l.text)}</span></div>`).join('');
         el.scrollTop = el.scrollHeight;
       }
     }
-
-    function clearLog() { 
-      logLines = []; 
-      document.getElementById('log').innerHTML = ''; 
-    }
-
-    function toggleLog() { 
-      const el = document.getElementById('log');
-      el.style.display = el.style.display === 'none' ? 'block' : 'none'; 
-    }
-
-    function escapeHtml(s) { 
-      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
-    }
+    function clearLog() { logLines = []; document.getElementById('log').innerHTML = ''; }
+    function toggleLog() { document.getElementById('log').style.display = document.getElementById('log').style.display === 'none' ? 'block' : 'none'; }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     
     function showToast(message, type = 'success') {
-      const t = document.createElement('div'); 
-      t.className = `toast ${type}`;
+      const t = document.createElement('div'); t.className = `toast ${type}`;
       t.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${escapeHtml(message)}`;
       document.getElementById('toast-container').appendChild(t);
-      setTimeout(() => { 
-        t.style.opacity = '0'; 
-        setTimeout(() => t.remove(), 300); 
-      }, 3500);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
     }
-
+    
     function formatPrice(price) {
       if (!price) return '';
       const clean = String(price).replace(/[^\d.]/g, '');
       return clean ? `${clean} ₽` : '';
     }
 
-    /* =========================================
-       ЛОГИКА АВТОРИЗАЦИИ
-       ========================================= */
-    function switchLoginRole(role) {
-      document.getElementById('tab-client').classList.toggle('active', role === 'client');
-      document.getElementById('tab-master').classList.toggle('active', role === 'master');
-      document.getElementById('client-login-form').style.display = role === 'client' ? 'block' : 'none';
-      document.getElementById('master-login-form').style.display = role === 'master' ? 'block' : 'none';
-    }
-
-    async function handleClientAuth() {
-      const email = document.getElementById('client-email').value.trim();
-      const password = document.getElementById('client-password').value.trim();
-      const btn = document.getElementById('btn-client-submit');
-
-      if (!email || password.length < 6) { 
-        showToast('Пароль минимум 6 символов', 'error'); 
-        return; 
-      }
-      
-      btn.disabled = true; 
-      btn.textContent = 'Загрузка...';
-      document.getElementById('global-error').style.display = 'none';
-
-      try {
-        // Пытаемся войти
-        let { data, error } = await db.auth.signInWithPassword({ email, password });
-
-        // Если аккаунта нет, регистрируем
-        if (error && error.message.includes('Invalid login credentials')) {
-          btn.textContent = 'Регистрация...';
-          const { data: signUpData, error: signUpError } = await db.auth.signUp({ email, password });
-          
-          if (signUpError) throw signUpError;
-          data = signUpData;
-        } else if (error) {
-          throw error;
-        }
-
-        // Если успешно
-        if (data.user) {
-          if (data.session) {
-             currentUserRole = 'client';
-             currentUserEmail = data.user.email;
-             showClientPanel();
-          } else {
-             showToast('Проверьте почту для подтверждения!', 'success');
-          }
-        }
-      } catch (err) {
-        document.getElementById('global-error').style.display = 'block';
-        document.getElementById('global-error').innerHTML = `Ошибка Auth: ${err.message}`;
-      } finally {
-        btn.disabled = false; 
-        btn.textContent = 'Войти / Зарегистрироваться';
-      }
-    }
-
-    function handleMasterAuth() {
-      const login = document.getElementById('master-login').value.trim();
-      const pass = document.getElementById('master-password').value.trim();
-
-      if (login === 'VAG.COM' && pass === 'Andrey1209!!') {
-        currentUserRole = 'master';
-        localStorage.setItem('master_session', 'true');
-        showMasterPanel();
-      } else {
-        showToast('Неверный логин или пароль', 'error');
-      }
-    }
-
-    async function logoutUser() {
-      if (currentUserRole === 'client') await db.auth.signOut();
-      currentUserRole = null;
-      localStorage.removeItem('master_session');
-      document.getElementById('main-app').style.display = 'none';
-      document.getElementById('login-screen').style.display = 'flex';
-      if (realtimeChannel) db.removeChannel(realtimeChannel);
-    }
-
-    function closeClientSuccessScreen() {
-      document.getElementById('client-success-screen').style.display = 'none';
-      showClientPanel();
-    }
-
-    /* =========================================
-       УПРАВЛЕНИЕ ПАНЕЛЯМИ
-       ========================================= */
-    function showMasterPanel() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-app').style.display = 'block';
-      document.getElementById('master-panel').style.display = 'block';
-      document.getElementById('client-panel').style.display = 'none';
-      document.getElementById('user-role-display').textContent = 'Панель сотрудника';
-      
-      renderList(); 
-      
-      if (realtimeChannel) db.removeChannel(realtimeChannel);
-      realtimeChannel = db.channel('realtime-appointments')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
-          renderList(); 
-        }).subscribe();
-    }
-
-    function showClientPanel() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('client-success-screen').style.display = 'none';
-      document.getElementById('main-app').style.display = 'block';
-      document.getElementById('master-panel').style.display = 'none';
-      document.getElementById('client-panel').style.display = 'block';
-      document.getElementById('user-role-display').textContent = 'Личный кабинет';
-      document.getElementById('c-email').value = currentUserEmail;
-      renderClientList();
-    }
-
-    /* =========================================
-       ОТПРАВКА ПИСЕМ И ШАБЛОНЫ
-       ========================================= */
+    /* ОТПРАВКА ПИСЕМ */
     async function sendEmail({ to, subject, body }) {
       try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
@@ -966,6 +413,7 @@
       }
     }
 
+    /* ШАБЛОНЫ ПИСЕМ */
     function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false }) {
       const mainText = introText || 'Благодарим за доверие. Ваша запись предварительно согласована.';
       const fPrice = price ? formatPrice(price) : '';
@@ -996,15 +444,12 @@
       </div>`;
     }
 
-    /* =========================================
-       ЗАГРУЗКА БАЗЫ ДАННЫХ
-       ========================================= */
+    /* БАЗА */
     async function loadAll() {
       const { data, error } = await db.from('appointments').select('*').eq('is_archived', currentTab === 'archive').order('date', {ascending: true});
-      
       if (error) {
         document.getElementById('global-error').style.display = 'block';
-        document.getElementById('global-error').innerHTML = `Ошибка БД: ${error.message}. Возможно, не хватает колонок в таблице. Выполните SQL-запрос!`;
+        document.getElementById('global-error').innerHTML = `Ошибка БД: ${error.message}`;
         return [];
       }
       return data.map(row => ({ ...row, time: row.time ? row.time.slice(0, 5) : '00:00' }));
@@ -1019,11 +464,8 @@
       renderList();
     }
 
-    /* =========================================
-       ОТРИСОВКА СПИСКА МАСТЕРА
-       ========================================= */
+    /* ОТРИСОВКА СПИСКА */
     async function renderList() {
-      if (currentUserRole !== 'master') return;
       document.getElementById('list').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">Загрузка...</div>';
       
       const items = await loadAll();
@@ -1037,10 +479,6 @@
       let html = `<table><thead><tr><th>Клиент</th><th>Время</th><th>Проблема</th><th>Статус</th><th>Действия</th></tr></thead><tbody>`;
       
       items.forEach(it => {
-        const sourceBadge = it.user_id 
-          ? '<span class="badge-source-client">👤 Клиент</span>'
-          : '<span class="badge-source-master">👨‍🔧 Мастер</span>';
-
         let statusBadge = '<span class="badge badge-pending">Ожидает</span>';
         if (it.is_archived) statusBadge = '<span class="badge badge-archived">📦 Архив</span>';
         else if (it.is_signed) statusBadge = '<span class="badge badge-signed">📝 Подписано</span>';
@@ -1048,7 +486,7 @@
 
         html += `<tr>
           <td>
-            <div class="cell-name">${escapeHtml(it.name)} ${sourceBadge}</div>
+            <div class="cell-name">${escapeHtml(it.name)}</div>
             <div class="cell-sub">🚗 ${escapeHtml(it.car)}</div>
             ${it.phone ? `<div class="cell-sub">📞 ${escapeHtml(it.phone)}</div>` : ''}
           </td>
@@ -1074,42 +512,7 @@
       el.innerHTML = html;
     }
 
-    /* =========================================
-       ОТРИСОВКА СПИСКА КЛИЕНТА
-       ========================================= */
-    async function renderClientList() {
-      if (currentUserRole !== 'client') return;
-      
-      const { data, error } = await db.from('appointments').select('*').eq('email', currentUserEmail).order('date', {ascending: true});
-      const el = document.getElementById('client-list');
-      
-      if (error || !data || !data.length) {
-        el.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted)">У вас пока нет заявок</div>`;
-        return;
-      }
-
-      let html = `<table><thead><tr><th>Дата</th><th>Авто</th><th>Статус</th></tr></thead><tbody>`;
-      
-      data.forEach(it => {
-        let status = 'Ожидает';
-        let badgeClass = 'badge-pending';
-        if (it.is_archived) { status = 'Завершено'; badgeClass = 'badge-archived'; }
-        else if (it.is_signed) { status = 'Подписано'; badgeClass = 'badge-signed'; }
-        else if (it.price) { status = 'Цена объявлена'; badgeClass = 'badge-price'; }
-        
-        html += `<tr>
-          <td>${formatDateRu(it.date)} ${it.time.slice(0,5)}</td>
-          <td>${escapeHtml(it.car)}</td>
-          <td><span class="badge ${badgeClass}">${status}</span></td>
-        </tr>`;
-      });
-      html += `</tbody></table>`;
-      el.innerHTML = html;
-    }
-
-    /* =========================================
-       ДЕЙСТВИЯ МАСТЕРА (ЦЕНА, АРХИВ, УДАЛЕНИЕ)
-       ========================================= */
+    /* ДЕЙСТВИЯ */
     async function setPrice(id) {
       const priceInput = prompt('Введите стоимость работ (например: 5000):');
       if (!priceInput) return;
@@ -1165,57 +568,7 @@
       link.href = URL.createObjectURL(blob); link.download = `Отчет.csv`; link.click();
     }
 
-    /* =========================================
-       ФОРМА КЛИЕНТА
-       ========================================= */
-    document.getElementById('client-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('c-submit-btn'); btn.textContent = 'Отправка...'; btn.disabled = true;
-
-      const item = {
-        name: document.getElementById('c-name').value.trim(),
-        phone: document.getElementById('c-phone').value.trim(),
-        email: document.getElementById('c-email').value.trim(),
-        car: document.getElementById('c-car').value.trim(),
-        address: document.getElementById('c-address').value.trim(),
-        notes: document.getElementById('c-notes').value.trim(),
-        date: document.getElementById('c-date').value,
-        time: document.getElementById('c-time').value,
-        user_id: (await db.auth.getUser()).data.user?.id,
-        reminder_12h_sent: false, reminder_3h_sent: false, is_archived: false, is_signed: false
-      };
-
-      try {
-        const { data, error } = await db.from('appointments').insert([item]).select();
-        if (error) throw error;
-        
-        const clientHtml = getEmailTemplate({ 
-          id: data[0].id, title: 'Заявка создана', color: '#10b981', name: item.name, car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
-          introText: 'Ваша заявка предварительно согласована. Письмо уже на вашей почте (если его нет, проверьте Спам).'
-        });
-        await sendEmail({ to: item.email, subject: 'Заявка создана', body: clientHtml });
-
-        const masterHtml = getEmailTemplate({
-          id: data[0].id, title: '🚗 Новый кейс', color: '#6366f1', name: 'Мастер', car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isMaster: true,
-          introText: `Новая заявка от <b>${escapeHtml(item.name)}</b>.<br>Тел: ${escapeHtml(item.phone)}<br>Email: ${escapeHtml(item.email)}<br><br>Проблема:<br>${escapeHtml(item.notes)}`
-        });
-        await sendEmail({ to: MASTER_EMAIL, subject: '🚗 Новый кейс от клиента!', body: masterHtml });
-
-        document.getElementById('client-panel').style.display = 'none';
-        document.getElementById('client-success-screen').style.display = 'flex';
-        
-        e.target.reset();
-        document.getElementById('c-email').value = currentUserEmail;
-        renderClientList();
-      } catch (err) {
-        showToast(`Ошибка: ${err.message}`, 'error');
-        btn.textContent = 'Отправить'; btn.disabled = false;
-      }
-    });
-
-    /* =========================================
-       ФОРМА МАСТЕРА (РУЧНОЕ ДОБАВЛЕНИЕ)
-       ========================================= */
+    /* ФОРМА ДОБАВЛЕНИЯ */
     document.getElementById('form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submit-btn'); btn.textContent = 'Сохранение...'; btn.disabled = true;
@@ -1253,9 +606,7 @@
       }
     });
 
-    /* =========================================
-       ПОДПИСЬ И АКТ
-       ========================================= */
+    /* ПОДПИСЬ И АКТ */
     let canvas, ctx, isDrawing = false, hasDrawn = false;
     
     function initCanvas() {
@@ -1307,12 +658,9 @@
       }
     }
 
-    /* =========================================
-       ССЫЛКИ ИЗ ПИСЕМ (ОТМЕНА И ПОДПИСАНИЕ)
-       ========================================= */
     async function handleCancellation(cancelId) {
       document.getElementById('cancel-screen').style.display = 'flex';
-      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = 'none';
       const { data: rows } = await db.from('appointments').select('*').eq('id', cancelId);
       if (rows && rows.length > 0) {
         const appt = rows[0];
@@ -1322,7 +670,7 @@
     }
 
     async function handleSigning(signId) {
-      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = 'none';
       document.getElementById('sign-screen').style.display = 'flex';
       currentSignId = signId;
       const { data: appt } = await db.from('appointments').select('*').eq('id', signId).single();
@@ -1332,31 +680,24 @@
       }
     }
 
-    /* =========================================
-       ЭФФЕКТЫ И ИНИЦИАЛИЗАЦИЯ
-       ========================================= */
+    /* ЭФФЕКТЫ И ИНИЦИАЛИЗАЦИЯ */
     function toggleRGB(c) { document.body.classList.toggle('rgb-mode', c.checked); localStorage.setItem('rgb_mode', c.checked); }
     function toggleNewYear(c) { document.body.classList.toggle('ny-mode', c.checked); localStorage.setItem('ny_mode', c.checked); }
 
     (async () => {
       const today = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
       const d1 = document.getElementById('date'); if(d1) d1.value = today;
-      const d2 = document.getElementById('c-date'); if(d2) d2.value = today;
       
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('cancel')) { await handleCancellation(urlParams.get('cancel')); } 
       else if (urlParams.get('sign')) { await handleSigning(urlParams.get('sign')); }
       else {
-        if (localStorage.getItem('master_session') === 'true') {
-          currentUserRole = 'master'; showMasterPanel();
-        } else {
-          const { data: { session } } = await db.auth.getSession();
-          if (session) {
-            currentUserRole = 'client'; currentUserEmail = session.user.email; showClientPanel();
-          } else {
-            document.getElementById('login-screen').style.display = 'flex';
-          }
-        }
+        renderList();
+        if (realtimeChannel) db.removeChannel(realtimeChannel);
+        realtimeChannel = db.channel('realtime-appointments')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
+            renderList(); 
+          }).subscribe();
       }
     })();
   </script>
