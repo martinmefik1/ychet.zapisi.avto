@@ -127,10 +127,9 @@
     .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; margin-bottom: 6px; }
     .badge-sent { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
     .badge-pending { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
-    .badge-confirmed { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
-    .badge-waiting-confirm { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
     .badge-signed { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; }
     .badge-archived { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid #94a3b8; }
+    .badge-price { background: #fef3c7; color: #d97706; border: 1px solid #f59e0b; }
     
     /* Бейджи источника заявки */
     .badge-source-client { background: rgba(255, 255, 255, 0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.2); font-size: 0.65rem; margin-left: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
@@ -173,7 +172,7 @@
     }
 
     /* ЭКРАНЫ */
-    #login-screen, #cancel-screen, #confirm-screen, #sign-screen, #warranty-screen, #view-act-screen, #client-success-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+    #login-screen, #cancel-screen, #sign-screen, #warranty-screen, #view-act-screen, #client-success-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
     #login-screen { display: flex; flex-direction: column; z-index: 100000; }
     
     .login-box { background: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border); max-width: 400px; width: 100%; margin: auto; text-align: left; }
@@ -187,7 +186,6 @@
     @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .cancel-logo { max-width: 140px; width: 100%; height: auto; margin-bottom: 25px; border-radius: 12px; }
     .cancel-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--err); }
-    .confirm-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
     .success-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
     .cancel-text { font-size: 1.1rem; color: var(--text-muted); }
 
@@ -275,7 +273,7 @@
       <div class="cancel-text">
         Письмо с деталями уже на вашей почте.<br>
         Если его нет во «Входящих», пожалуйста, проверьте папку <b>«Спам»</b>.<br><br>
-        <span style="font-size: 0.9rem; opacity: 0.7;">Мастер свяжется с вами для подтверждения.</span>
+        <span style="font-size: 0.9rem; opacity: 0.7;">Мастер свяжется с вами.</span>
       </div>
       <button onclick="closeClientSuccessScreen()" style="margin-top: 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px;">Вернуться в кабинет</button>
     </div>
@@ -286,14 +284,6 @@
       <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
       <div class="cancel-title">Запись отменена</div>
       <div class="cancel-text">Ваша запись на диагностику успешно отменена.<br>Мастер уже получил уведомление.<br><br><span style="font-size: 0.9rem; opacity: 0.7;">Вы можете закрыть эту вкладку.</span></div>
-    </div>
-  </div>
-
-  <div id="confirm-screen">
-    <div class="cancel-content">
-      <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
-      <div class="confirm-title">Запись подтверждена!</div>
-      <div class="cancel-text">Спасибо! Мы получили ваше подтверждение.<br>Мастер уже уведомлен.<br><br><span style="font-size: 0.9rem; opacity: 0.7;">Вы можете закрыть эту вкладку.</span></div>
     </div>
   </div>
 
@@ -437,7 +427,7 @@
     <div id="client-panel" style="display: none;">
       <div class="card" style="max-width: 600px; margin: 0 auto 24px;">
         <h2>🚗 Оставить заявку на диагностику</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Опишите проблему, и мастер свяжется с вами для подтверждения.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Опишите проблему, и мастер свяжется с вами.</p>
         <form id="client-form">
           <label for="c-name">Ваше имя</label>
           <input id="c-name" required placeholder="Иван Петров">
@@ -534,33 +524,54 @@
       const password = document.getElementById('client-password').value.trim();
       const btn = document.getElementById('btn-client-submit');
 
-      if (!email || password.length < 6) { showToast('Проверьте Email и пароль (мин. 6 символов)', 'error'); return; }
+      if (!email || password.length < 6) { 
+        showToast('Проверьте Email и пароль (мин. 6 символов)', 'error'); 
+        return; 
+      }
       
-      btn.disabled = true; btn.textContent = 'Загрузка...';
+      btn.disabled = true; 
+      btn.textContent = 'Загрузка...';
 
-      let { data, error } = await db.auth.signInWithPassword({ email, password });
+      // Защита от бесконечного зависания (таймаут 10 секунд)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Превышено время ожидания. Проверьте интернет.')), 10000)
+      );
 
-      if (error && error.message.includes('Invalid login credentials')) {
-        const { data: signUpData, error: signUpError } = await db.auth.signUp({ email, password });
-        if (signUpError) {
-          showToast('Ошибка регистрации: ' + signUpError.message, 'error');
-          btn.disabled = false; btn.textContent = 'Войти / Зарегистрироваться';
-          return;
+      try {
+        let { data, error } = await Promise.race([
+          db.auth.signInWithPassword({ email, password }),
+          timeoutPromise
+        ]);
+
+        if (error && error.message.includes('Invalid login credentials')) {
+          btn.textContent = 'Регистрация...';
+          
+          const { data: signUpData, error: signUpError } = await Promise.race([
+            db.auth.signUp({ email, password }),
+            timeoutPromise
+          ]);
+          
+          if (signUpError) throw signUpError;
+          data = signUpData;
+        } else if (error) {
+          throw error;
         }
-        data = signUpData;
-      } else if (error) {
-        showToast('Ошибка: ' + error.message, 'error');
-        btn.disabled = false; btn.textContent = 'Войти / Зарегистрироваться';
-        return;
-      }
 
-      if (data.user) {
-        currentUserRole = 'client';
-        currentUserEmail = data.user.email;
-        showClientPanel();
+        if (data.user) {
+          if (data.session) {
+             currentUserRole = 'client';
+             currentUserEmail = data.user.email;
+             showClientPanel();
+          } else {
+             showToast('Регистрация успешна! Проверьте почту для входа.', 'success');
+          }
+        }
+      } catch (err) {
+        showToast('Ошибка: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false; 
+        btn.textContent = 'Войти / Зарегистрироваться';
       }
-      
-      btn.disabled = false; btn.textContent = 'Войти / Зарегистрироваться';
     }
 
     function handleMasterAuth() {
@@ -592,7 +603,7 @@
 
     function closeClientSuccessScreen() {
       document.getElementById('client-success-screen').style.display = 'none';
-      showClientPanel(); // Возвращаем в кабинет без потери сессии
+      showClientPanel();
     }
 
     /* ОТРИСОВКА ПАНЕЛЕЙ */
@@ -674,7 +685,7 @@
     }
 
     /* ШАБЛОНЫ ПИСЕМ */
-    function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false, isConfirmBtn = false }) {
+    function getEmailTemplate({ id, title, color, name, car, price, date, time, address, isCancelBtn, cancelLink, introText, isMaster = false }) {
       const mainText = introText || 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже представлена подробная информация о вашем визите:';
       const fPrice = price ? formatPrice(price) : '';
 
@@ -713,12 +724,11 @@
               <p style="margin: 0; font-size: 14px; color: #166534;">Если ваши планы изменились, свяжитесь с нами:<br><a href="tel:+79774770587" style="color: #15803d; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; margin-top: 5px;">+7 (977) 477-05-87 (Андрей)</a></p>
             </div>
 
-            ${(isCancelBtn || isConfirmBtn) ? `
+            ${isCancelBtn ? `
               <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e2e8f0;">
-                ${isConfirmBtn ? `<p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Пожалуйста, подтвердите запись или отмените её:</p>` : ''}
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Если ваши планы изменились, вы можете отменить запись:</p>
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
-                  ${isConfirmBtn ? `<tr><td align="center" style="padding-bottom: 12px;"><a href="${SITE_URL}?confirm=${id}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">✅ Подтвердить запись</a></td></tr>` : ''}
-                  ${isCancelBtn ? `<tr><td align="center"><a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">❌ Отменить запись</a></td></tr>` : ''}
+                  <tr><td align="center"><a href="${cancelLink}" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">❌ Отменить запись</a></td></tr>
                 </table>
               </div>
             ` : ''}
@@ -868,13 +878,11 @@
                   : `<span class="badge badge-pending">3ч: ${new Date(it.date+'T'+it.time) - 10800000 <= now ? 'готово' : 'ожидание'}</span>`;
               }
 
-              let confirmBadge = '';
+              let statusBadge = '';
               if (it.is_signed) {
-                confirmBadge = '<span class="badge badge-signed">📝 Подписано</span>';
-              } else if (it.is_confirmed) {
-                confirmBadge = '<span class="badge badge-confirmed">✅ Подтверждено</span>';
-              } else if (it.manual_reminder_sent) {
-                confirmBadge = '<span class="badge badge-waiting-confirm">⏳ Ожидает подтв.</span>';
+                statusBadge = '<span class="badge badge-signed">📝 Подписано</span>';
+              } else if (it.price) {
+                statusBadge = '<span class="badge badge-price">💰 Цена объявлена</span>';
               }
 
               // БЕЙДЖ ИСТОЧНИКА
@@ -902,7 +910,7 @@
                     ${it.notes ? `<div class="note-cell">${escapeHtml(it.notes)}</div>` : '—'}
                   </td>
                   <td data-label="Статус">
-                    ${confirmBadge || '<span style="color:var(--text-muted); font-size:0.8rem;">Не отправлено</span>'}
+                    ${statusBadge || '<span style="color:var(--text-muted); font-size:0.8rem;">Ожидает</span>'}
                   </td>
                   <td data-label="Напоминания">
                     <div>${b12}</div>
@@ -944,16 +952,16 @@
       const { data: it, error: fetchErr } = await db.from('appointments').select('*').eq('id', id).single();
       if (fetchErr || !it) { showToast('Ошибка', 'error'); return; }
 
-      const { error } = await db.from('appointments').update({ price: fPrice, is_confirmed: true }).eq('id', id);
+      const { error } = await db.from('appointments').update({ price: fPrice }).eq('id', id);
       if (error) { showToast('Ошибка сохранения цены', 'error'); return; }
 
       // Письмо клиенту
       const html = getEmailTemplate({
         id: it.id, title: 'Цена согласована', color: '#10b981', name: it.name, car: it.car, price: fPrice, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
-        isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${it.id}`,
-        introText: `Мастер подтвердил вашу запись и объявил стоимость работ: <b style="font-size:18px; color:#10b981;">${formatPrice(fPrice)}</b>. Ждем вас в назначенное время!`
+        isCancelBtn: true, cancelLink: `${SITE_URL}?cancel=${it.id}`,
+        introText: `Мастер объявил стоимость работ по вашей заявке: <b style="font-size:18px; color:#10b981;">${formatPrice(fPrice)}</b>.`
       });
-      await sendEmail({ to: it.email, subject: '✅ Запись подтверждена и цена объявлена', body: html });
+      await sendEmail({ to: it.email, subject: '💰 Объявлена стоимость работ', body: html });
       
       showToast('Цена объявлена, письмо отправлено клиенту!');
       renderList();
@@ -985,8 +993,8 @@
               let status = 'Ожидает';
               let badgeClass = 'badge-pending';
               if (it.is_archived) { status = 'Завершено'; badgeClass = 'badge-archived'; }
-              else if (it.price) { status = 'Подтверждено'; badgeClass = 'badge-confirmed'; }
-              else if (it.is_confirmed) { status = 'Подтверждено'; badgeClass = 'badge-confirmed'; }
+              else if (it.is_signed) { status = 'Подписано'; badgeClass = 'badge-signed'; }
+              else if (it.price) { status = 'Цена объявлена'; badgeClass = 'badge-price'; }
               
               return `
                 <tr>
@@ -1022,7 +1030,7 @@
         date: document.getElementById('c-date').value,
         time: document.getElementById('c-time').value,
         user_id: (await db.auth.getUser()).data.user?.id,
-        reminder_12h_sent: false, reminder_3h_sent: false, is_confirmed: false, manual_reminder_sent: false, is_archived: false, review_sent: false, is_signed: false
+        reminder_12h_sent: false, reminder_3h_sent: false, manual_reminder_sent: false, is_archived: false, review_sent: false, is_signed: false
       };
 
       try {
@@ -1030,7 +1038,7 @@
         if (error) throw error;
         
         const clientHtml = getEmailTemplate({ 
-          id: data[0].id, title: 'Заявка создана', color: '#10b981', name: item.name, car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
+          id: data[0].id, title: 'Заявка создана', color: '#10b981', name: item.name, car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
           introText: 'Благодарим за доверие. Ваша заявка предварительно согласована. Письмо уже на вашей почте (если его нет, проверьте Спам). Ниже детали:'
         });
         await sendEmail({ to: item.email, subject: 'Заявка на диагностику создана', body: clientHtml });
@@ -1079,9 +1087,9 @@
     async function exportToCSV() {
       const items = await loadAll();
       if (!items.length) { showToast('Нет данных', 'error'); return; }
-      let csv = 'Дата;Время;Клиент;Телефон;Email;Авто;Сумма;Адрес;Заметки;Подтверждено;Подписано\n';
+      let csv = 'Дата;Время;Клиент;Телефон;Email;Авто;Сумма;Адрес;Заметки;Подписано\n';
       items.forEach(it => {
-        csv += `${formatDateRu(it.date)};${it.time};${it.name};${it.phone || '-'};${it.email};${it.car};${it.price || '-'};${it.address || '-'};${it.notes || '-'};${it.is_confirmed ? 'Да' : 'Нет'};${it.is_signed ? 'Да' : 'Нет'}\n`;
+        csv += `${formatDateRu(it.date)};${it.time};${it.name};${it.phone || '-'};${it.email};${it.car};${it.price || '-'};${it.address || '-'};${it.notes || '-'};${it.is_signed ? 'Да' : 'Нет'}\n`;
       });
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
@@ -1209,11 +1217,11 @@
 
       const html = getEmailTemplate({
         id: it.id, title: 'Напоминание о визите', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
-        isCancelBtn: true, isConfirmBtn: true, cancelLink: `${SITE_URL}?cancel=${it.id}`,
-        introText: 'Мастер напоминает о вашей записи. Пожалуйста, подтвердите запись.'
+        isCancelBtn: true, cancelLink: `${SITE_URL}?cancel=${it.id}`,
+        introText: 'Мастер напоминает о вашей записи на диагностику.'
       });
 
-      if (await sendEmail({ to: it.email, subject: 'Напоминание: подтвердите запись', body: html })) {
+      if (await sendEmail({ to: it.email, subject: 'Напоминание о записи', body: html })) {
         await db.from('appointments').update({ manual_reminder_sent: true }).eq('id', it.id);
         showToast(`Письмо отправлено`);
         localStorage.setItem('reminder_lock_' + id, Date.now() + 300000);
@@ -1259,7 +1267,7 @@
           if (timeUntil <= 12 * 60 * 60 * 1000) {
             if (timeUntil > 11 * 60 * 60 * 1000) {
               const html = getEmailTemplate({ 
-                id: it.id, title: 'Напоминание: завтра', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time, address: it.address, isCancelBtn: true, isConfirmBtn: false, cancelLink,
+                id: it.id, title: 'Напоминание: завтра', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time, address: it.address, isCancelBtn: true, cancelLink,
                 introText: 'Напоминаем, что завтра у вас запланирована диагностика автомобиля.'
               });
               if (await sendEmail({ to: it.email, subject: 'Напоминание: завтра', body: html })) {
@@ -1274,8 +1282,8 @@
         if (!it.reminder_3h_sent) {
           if (timeUntil <= 3 * 60 * 60 * 1000) {
             const html = getEmailTemplate({ 
-              id: it.id, title: 'Напоминание: через 3 часа', color: '#f59e0b', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time, address: it.address, isCancelBtn: true, isConfirmBtn: true, cancelLink,
-              introText: 'Напоминаем, что уже через 3 часа у вас запланирована диагностика. Пожалуйста, подтвердите запись.'
+              id: it.id, title: 'Напоминание: через 3 часа', color: '#f59e0b', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time, address: it.address, isCancelBtn: true, cancelLink,
+              introText: 'Напоминаем, что уже через 3 часа у вас запланирована диагностика.'
             });
             if (await sendEmail({ to: it.email, subject: 'Напоминание: через 3 часа', body: html })) {
               await db.from('appointments').update({ reminder_3h_sent: true }).eq('id', it.id); sentCount++;
@@ -1287,7 +1295,7 @@
       if (sentCount > 0) renderList();
     }
 
-    /* ОТМЕНА / ПОДТВЕРЖДЕНИЕ */
+    /* ОТМЕНА */
     async function handleCancellation(cancelId) {
       document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
       document.getElementById('cancel-screen').style.display = 'flex';
@@ -1298,21 +1306,6 @@
           const masterHtml = getEmailTemplate({ id: appt.id, title: 'Отмена', color: '#ef4444', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true, introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.` });
           await sendEmail({ to: MASTER_EMAIL, subject: `❌ Отмена: ${appt.name}`, body: masterHtml });
         }
-      }
-    }
-
-    async function handleConfirmation(confirmId) {
-      document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
-      document.getElementById('confirm-screen').style.display = 'flex';
-      const { data: rows } = await db.from('appointments').select('*').eq('id', confirmId);
-      if (rows && rows.length > 0) {
-        const appt = rows[0];
-        await db.from('appointments').update({ is_confirmed: true }).eq('id', confirmId);
-        if ("Notification" in window && Notification.permission === "granted") {
-          try { new Notification("✅ Клиент подтвердил запись!", { body: `${appt.name}`, icon: LOGO_URL }); } catch(e) {}
-        }
-        const masterHtml = getEmailTemplate({ id: appt.id, title: 'Подтверждение', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true, introText: `Клиент <b>${escapeHtml(appt.name)}</b> подтвердил запись.` });
-        await sendEmail({ to: MASTER_EMAIL, subject: `✅ Подтверждение: ${appt.name}`, body: masterHtml });
       }
     }
 
@@ -1394,7 +1387,7 @@
         notes: document.getElementById('notes').value.trim(),
         date: document.getElementById('date').value,
         time: document.getElementById('time').value,
-        reminder_12h_sent: false, reminder_3h_sent: false, is_confirmed: false, manual_reminder_sent: false, is_archived: false, review_sent: false, is_signed: false
+        reminder_12h_sent: false, reminder_3h_sent: false, manual_reminder_sent: false, is_archived: false, review_sent: false, is_signed: false
       };
 
       try {
@@ -1403,7 +1396,7 @@
         addLog(`✅ Создана: ${item.name}`, 'ok');
         
         const html = getEmailTemplate({ 
-          id: data[0].id, title: 'Запись создана', color: '#10b981', name: item.name, car: item.car, price: item.price, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
+          id: data[0].id, title: 'Запись создана', color: '#10b981', name: item.name, car: item.car, price: item.price, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
           introText: 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже детали:'
         });
         await sendEmail({ to: item.email, subject: 'Запись на диагностику создана', body: html });
@@ -1447,7 +1440,6 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('cancel')) { await handleCancellation(urlParams.get('cancel')); } 
-      else if (urlParams.get('confirm')) { await handleConfirmation(urlParams.get('confirm')); } 
       else if (urlParams.get('sign')) { await handleSigning(urlParams.get('sign')); }
       else if (urlParams.get('warranty')) { await handleWarranty(urlParams.get('warranty')); }
       else {
