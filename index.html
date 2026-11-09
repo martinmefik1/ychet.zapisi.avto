@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>VAG FEATURE — Учет записей</title>
+  <title>VAG FEATURE — Портал</title>
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -166,12 +166,23 @@
       100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
     }
 
-    #cancel-screen, #confirm-screen, #sign-screen, #warranty-screen, #view-act-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+    /* ЭКРАНЫ */
+    #login-screen, #cancel-screen, #confirm-screen, #sign-screen, #warranty-screen, #view-act-screen, #client-success-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 99999; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+    #login-screen { display: flex; flex-direction: column; z-index: 100000; }
+    
+    .login-box { background: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border); max-width: 400px; width: 100%; margin: auto; text-align: left; }
+    .login-box h2 { text-align: center; margin-bottom: 20px; font-size: 1.5rem; color: #fff; }
+    
+    .role-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; }
+    .role-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; color: var(--text-muted); font-weight: 600; transition: 0.2s; }
+    .role-tab.active { background: var(--accent); color: #fff; }
+
     .cancel-content { max-width: 400px; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .cancel-logo { max-width: 140px; width: 100%; height: auto; margin-bottom: 25px; border-radius: 12px; }
     .cancel-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--err); }
     .confirm-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
+    .success-title { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--ok); }
     .cancel-text { font-size: 1.1rem; color: var(--text-muted); }
 
     .sign-content { max-width: 600px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); text-align: left; position: relative; margin: auto; }
@@ -220,6 +231,51 @@
 
   <div class="garland" id="garland"></div>
   <div id="snow-container"></div>
+
+  <!-- ЭКРАН ВХОДА -->
+  <div id="login-screen">
+    <div class="login-box" id="login-box">
+      <h2>Вход в систему</h2>
+      <div class="role-tabs">
+        <div class="role-tab active" id="tab-client" onclick="switchLoginRole('client')">Я Клиент</div>
+        <div class="role-tab" id="tab-master" onclick="switchLoginRole('master')">Я Сотрудник</div>
+      </div>
+
+      <!-- Форма клиента (Email/Pass) -->
+      <div id="client-login-form">
+        <label for="client-email">Email</label>
+        <input id="client-email" type="email" placeholder="client@mail.ru">
+        <label for="client-password">Пароль</label>
+        <input id="client-password" type="password" placeholder="Минимум 6 символов">
+        
+        <button class="btn-primary" onclick="handleClientAuth()" id="btn-client-submit">Войти / Зарегистрироваться</button>
+        <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;" id="client-auth-hint">Если у вас нет аккаунта, он создастся автоматически.</p>
+      </div>
+
+      <!-- Форма сотрудника (Логин/Пароль) -->
+      <div id="master-login-form" style="display: none;">
+        <label for="master-login">Логин</label>
+        <input id="master-login" placeholder="VAG.COM">
+        <label for="master-password">Пароль</label>
+        <input id="master-password" type="password" placeholder="*******">
+        <button class="btn-primary" onclick="handleMasterAuth()">Войти как сотрудник</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЭКРАН УСПЕХА КЛИЕНТА -->
+  <div id="client-success-screen">
+    <div class="cancel-content">
+      <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="cancel-logo">
+      <div class="success-title">Заявка создана!</div>
+      <div class="cancel-text">
+        Письмо с деталями уже на вашей почте.<br>
+        Если его нет во «Входящих», пожалуйста, проверьте папку <b>«Спам»</b>.<br><br>
+        <span style="font-size: 0.9rem; opacity: 0.7;">Мастер свяжется с вами для подтверждения.</span>
+      </div>
+      <button onclick="logoutUser()" style="margin-top: 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px;">Вернуться в кабинет</button>
+    </div>
+  </div>
 
   <div id="cancel-screen">
     <div class="cancel-content">
@@ -278,13 +334,14 @@
 
   <div id="toast-container"></div>
 
-  <div class="app">
+  <!-- ГЛАВНЫЙ ЭКРАН -->
+  <div class="app" id="main-app" style="display: none;">
     <div class="header">
       <h1>
         <img src="https://martinmefik1.github.io/ychet.zapisi.avto/83B98EE8-954B-4375-ADB7-A0983B869F72.png" alt="VAG FEATURE" class="site-logo">
         <div class="brand-text">
           <span class="brand-title">VAG FEATURE</span>
-          <span class="brand-sub">Учет записей</span>
+          <span class="brand-sub" id="user-role-display">Личный кабинет</span>
         </div>
       </h1>
       
@@ -301,70 +358,112 @@
         </div>
         <div class="controls-row">
           <button class="btn-notify" id="notify-btn" onclick="requestNotifPermission()">🔔 Проверка...</button>
-          <span class="badge-cloud" id="status-badge">🟢 Онлайн</span>
+          <button class="btn-icon btn-delete" onclick="logoutUser()" style="border-radius: 999px; padding: 6px 14px;">Выйти</button>
+          <span class="badge-cloud" id="status-badge" style="display:none;">🟢 Онлайн</span>
         </div>
       </div>
-
     </div>
 
-    <div class="log-wrapper">
-      <div class="log-header">
-        <div style="font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Системный лог</div>
-        <div>
-          <button style="background:transparent; color:var(--text-muted); font-size:0.75rem; margin-right:10px;" onclick="toggleLog()">Свернуть/Развернуть</button>
-          <button style="background:transparent; color:var(--text-muted); font-size:0.75rem;" onclick="clearLog()">Очистить</button>
+    <!-- ИНТЕРФЕЙС СОТРУДНИКА -->
+    <div id="master-panel" style="display: none;">
+      <div class="log-wrapper">
+        <div class="log-header">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Системный лог</div>
+          <div>
+            <button style="background:transparent; color:var(--text-muted); font-size:0.75rem; margin-right:10px;" onclick="toggleLog()">Свернуть/Развернуть</button>
+            <button style="background:transparent; color:var(--text-muted); font-size:0.75rem;" onclick="clearLog()">Очистить</button>
+          </div>
         </div>
+        <div id="log" class="log-box"></div>
       </div>
-      <div id="log" class="log-box"></div>
-    </div>
 
-    <div class="grid">
-      <div class="card">
-        <h2>➕ Новая запись</h2>
-        <form id="form">
-          <label for="name">Имя клиента</label>
-          <input id="name" required placeholder="Иван Петров">
-          
-          <label for="email">Email</label>
-          <input id="email" type="email" required placeholder="client@mail.ru">
-          
-          <label for="car">Марка и модель авто</label>
-          <input id="car" required placeholder="Volkswagen Passat">
-          
-          <label for="price">💰 Сумма работы (необязательно)</label>
-          <input id="price" placeholder="Например: 5000">
-          
-          <label for="address">Адрес</label>
-          <input id="address" placeholder="ул. Ленина, 10">
-          
-          <div class="row">
-            <div><label for="date">Дата</label><input id="date" type="date" required></div>
-            <div><label for="time">Время</label><input id="time" type="time" required></div>
+      <div class="grid">
+        <div class="card">
+          <h2>➕ Новая запись (вручную)</h2>
+          <form id="form">
+            <label for="name">Имя клиента</label>
+            <input id="name" required placeholder="Иван Петров">
+            
+            <label for="email">Email</label>
+            <input id="email" type="email" required placeholder="client@mail.ru">
+            
+            <label for="car">Марка и модель авто</label>
+            <input id="car" required placeholder="Volkswagen Passat">
+            
+            <label for="price">💰 Сумма работы (необязательно)</label>
+            <input id="price" placeholder="Например: 5000">
+            
+            <label for="address">Адрес</label>
+            <input id="address" placeholder="ул. Ленина, 10">
+            
+            <div class="row">
+              <div><label for="date">Дата</label><input id="date" type="date" required></div>
+              <div><label for="time">Время</label><input id="time" type="time" required></div>
+            </div>
+            
+            <label for="notes">📝 Заметки для мастера (скрыто)</label>
+            <textarea id="notes" placeholder="Стук в подвеске..."></textarea>
+            
+            <button class="btn-primary" type="submit" id="submit-btn">Сохранить и отправить</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin-bottom: 0;">📋 Все записи</h2>
+            <button class="btn-export" onclick="exportToCSV()">📥 Скачать отчет (CSV)</button>
           </div>
           
-          <label for="notes">📝 Заметки для мастера (скрыто)</label>
-          <textarea id="notes" placeholder="Стук в подвеске..."></textarea>
+          <div class="tabs">
+            <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
+            <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
+          </div>
+
+          <div id="list" class="table-wrapper">
+            <div style="color: var(--text-muted); text-align: center; padding: 20px;">Загрузка...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ИНТЕРФЕЙС КЛИЕНТА -->
+    <div id="client-panel" style="display: none;">
+      <div class="card" style="max-width: 600px; margin: 0 auto 24px;">
+        <h2>🚗 Оставить заявку на диагностику</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Опишите проблему, и мастер свяжется с вами для подтверждения.</p>
+        <form id="client-form">
+          <label for="c-name">Ваше имя</label>
+          <input id="c-name" required placeholder="Иван Петров">
           
-          <button class="btn-primary" type="submit" id="submit-btn">Сохранить и отправить</button>
+          <label for="c-email">Ваш Email</label>
+          <input id="c-email" type="email" required readonly style="opacity: 0.7;">
+          
+          <label for="c-car">Марка и модель авто</label>
+          <input id="c-car" required placeholder="Volkswagen Passat">
+          
+          <label for="c-address">Адрес (куда приехать)</label>
+          <input id="c-address" placeholder="ул. Ленина, 10">
+          
+          <div class="row">
+            <div><label for="c-date">Дата</label><input id="c-date" type="date" required></div>
+            <div><label for="c-time">Время</label><input id="c-time" type="time" required></div>
+          </div>
+          
+          <label for="c-notes">📝 Опишите проблему (что случилось?)</label>
+          <textarea id="c-notes" required placeholder="Горит Check Engine, машина троит..."></textarea>
+          
+          <button class="btn-primary" type="submit" id="c-submit-btn">Отправить заявку</button>
         </form>
       </div>
 
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h2 style="margin-bottom: 0;">📋 Записи</h2>
-          <button class="btn-export" onclick="exportToCSV()">📥 Скачать отчет (CSV)</button>
-        </div>
-        
-        <div class="tabs">
-          <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
-          <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
-        </div>
-
-        <div id="list" class="table-wrapper">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h2>📋 Мои заявки</h2>
+        <div id="client-list" class="table-wrapper">
           <div style="color: var(--text-muted); text-align: center; padding: 20px;">Загрузка...</div>
         </div>
       </div>
     </div>
+
   </div>
 
   <script>
@@ -382,6 +481,8 @@
 
     let currentTab = 'active';
     let currentSignId = null;
+    let currentUserRole = null; // 'master' или 'client'
+    let currentUserEmail = null;
 
     /* ЛОГИ */
     let logLines = [];
@@ -390,8 +491,10 @@
       logLines.push({ time, text, type });
       if (logLines.length > 50) logLines.shift();
       const el = document.getElementById('log');
-      el.innerHTML = logLines.map(l => `<div><span class="t">[${l.time}]</span><span class="${l.type}">${escapeHtml(l.text)}</span></div>`).join('');
-      el.scrollTop = el.scrollHeight;
+      if(el) {
+        el.innerHTML = logLines.map(l => `<div><span class="t">[${l.time}]</span><span class="${l.type}">${escapeHtml(l.text)}</span></div>`).join('');
+        el.scrollTop = el.scrollHeight;
+      }
     }
     function clearLog() { logLines = []; document.getElementById('log').innerHTML = ''; }
     function toggleLog() { document.getElementById('log').classList.toggle('collapsed'); }
@@ -406,6 +509,110 @@
       if (!price) return '';
       const clean = String(price).replace(/[^\d.]/g, '');
       return clean ? `${clean} ₽` : '';
+    }
+
+    /* АВТОРИЗАЦИЯ */
+    function switchLoginRole(role) {
+      document.getElementById('tab-client').classList.toggle('active', role === 'client');
+      document.getElementById('tab-master').classList.toggle('active', role === 'master');
+      document.getElementById('client-login-form').style.display = role === 'client' ? 'block' : 'none';
+      document.getElementById('master-login-form').style.display = role === 'master' ? 'block' : 'none';
+    }
+
+    async function handleClientAuth() {
+      const email = document.getElementById('client-email').value.trim();
+      const password = document.getElementById('client-password').value.trim();
+      const btn = document.getElementById('btn-client-submit');
+
+      if (!email || password.length < 6) { showToast('Проверьте Email и пароль (мин. 6 символов)', 'error'); return; }
+      
+      btn.disabled = true; btn.textContent = 'Загрузка...';
+
+      // Пытаемся войти
+      let { data, error } = await db.auth.signInWithPassword({ email, password });
+
+      // Если не получилось, пробуем зарегистрироваться
+      if (error && error.message.includes('Invalid login credentials')) {
+        const { data: signUpData, error: signUpError } = await db.auth.signUp({ email, password });
+        if (signUpError) {
+          showToast('Ошибка регистрации: ' + signUpError.message, 'error');
+          btn.disabled = false; btn.textContent = 'Войти / Зарегистрироваться';
+          return;
+        }
+        data = signUpData;
+      } else if (error) {
+        showToast('Ошибка: ' + error.message, 'error');
+        btn.disabled = false; btn.textContent = 'Войти / Зарегистрироваться';
+        return;
+      }
+
+      if (data.user) {
+        currentUserRole = 'client';
+        currentUserEmail = data.user.email;
+        showClientPanel();
+      }
+      
+      btn.disabled = false; btn.textContent = 'Войти / Зарегистрироваться';
+    }
+
+    function handleMasterAuth() {
+      const login = document.getElementById('master-login').value.trim();
+      const pass = document.getElementById('master-password').value.trim();
+
+      if (login === 'VAG.COM' && pass === 'Andrey1209!!') {
+        currentUserRole = 'master';
+        localStorage.setItem('master_session', 'true');
+        showMasterPanel();
+      } else {
+        showToast('Неверный логин или пароль', 'error');
+      }
+    }
+
+    async function logoutUser() {
+      if (currentUserRole === 'client') {
+        await db.auth.signOut();
+      }
+      currentUserRole = null;
+      localStorage.removeItem('master_session');
+      document.getElementById('main-app').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('client-email').value = '';
+      document.getElementById('client-password').value = '';
+      document.getElementById('master-login').value = '';
+      document.getElementById('master-password').value = '';
+    }
+
+    /* ОТРИСОВКА ПАНЕЛЕЙ */
+    function showMasterPanel() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      document.getElementById('master-panel').style.display = 'block';
+      document.getElementById('client-panel').style.display = 'none';
+      document.getElementById('user-role-display').textContent = 'Панель сотрудника';
+      
+      addLog('🚀 Система запущена', 'ok');
+      cleanupArchive();
+      renderList();
+      
+      db.channel('realtime-appointments').unsubscribe();
+      db.channel('realtime-appointments')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
+          addLog('🔄 Realtime обновление', 'ok'); renderList(); 
+        }).subscribe();
+
+      setInterval(() => { renderList(); checkReminders(); }, 60000);
+    }
+
+    function showClientPanel() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      document.getElementById('master-panel').style.display = 'none';
+      document.getElementById('client-panel').style.display = 'block';
+      document.getElementById('user-role-display').textContent = 'Личный кабинет клиента';
+      
+      document.getElementById('c-email').value = currentUserEmail;
+      
+      renderClientList();
     }
 
     /* УВЕДОМЛЕНИЯ */
@@ -511,7 +718,7 @@
       </div>`;
     }
 
-    /* МИНИМАЛИСТИЧНЫЙ ШАБЛОН ДЛЯ ЗАПРОСА ПОДПИСИ (БЕЗ ЛИШНЕЙ ИНФОРМАЦИИ) */
+    /* МИНИМАЛИСТИЧНЫЙ ШАБЛОН ДЛЯ ЗАПРОСА ПОДПИСИ */
     function getSignRequestTemplate({ id, name }) {
       return `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
@@ -583,7 +790,7 @@
       </div>`;
     }
 
-    /* БАЗА И АРХИВ */
+    /* БАЗА (СОТРУДНИК) */
     async function loadAll() {
       const { data, error } = await db.from('appointments').select('*').eq('is_archived', currentTab === 'archive').order('date').order('time');
       if (error) { addLog(`❌ Ошибка БД: ${error.message}`, 'err'); return []; }
@@ -605,8 +812,9 @@
       renderList();
     }
 
-    /* ОТРИСОВКА */
+    /* ОТРИСОВКА СОТРУДНИКА */
     async function renderList() {
+      if (currentUserRole !== 'master') return;
       const items = await loadAll();
       const el = document.getElementById('list');
       
@@ -621,7 +829,7 @@
             <tr>
               <th>Клиент</th>
               <th>Время</th>
-              <th>Заметки</th>
+              <th>Проблема</th>
               <th>Статус</th>
               <th>Напоминания</th>
               <th>Действия</th>
@@ -653,7 +861,7 @@
               } else if (it.is_confirmed) {
                 confirmBadge = '<span class="badge badge-confirmed">✅ Подтверждено</span>';
               } else if (it.manual_reminder_sent) {
-                confirmBadge = '<span class="badge badge-waiting-confirm">⏳ Ожидает подтверждения</span>';
+                confirmBadge = '<span class="badge badge-waiting-confirm">⏳ Ожидает подтв.</span>';
               }
 
               const lockUntil = localStorage.getItem('reminder_lock_' + it.id);
@@ -671,7 +879,7 @@
                     <b>${formatDateRu(it.date)}</b><br>
                     <span style="color:var(--text-muted)">${it.time}</span>
                   </td>
-                  <td data-label="Заметки">
+                  <td data-label="Проблема">
                     ${it.notes ? `<div class="note-cell">${escapeHtml(it.notes)}</div>` : '—'}
                   </td>
                   <td data-label="Статус">
@@ -684,7 +892,7 @@
                   <td data-label="Действия">
                     <div class="actions">
                       ${currentTab === 'active' ? `
-                        ${!it.is_signed ? `<button class="btn-icon btn-sign" onclick="sendSignRequest('${it.id}')" title="Отправить акт на подпись">📝 Акт</button>` : ''}
+                        ${!it.is_signed ? `<button class="btn-icon btn-sign" onclick="sendSignRequest('${it.id}')" title="Отправить акт">📝 Акт</button>` : ''}
                         <button class="btn-icon btn-send" id="btn-remind-${it.id}" onclick="sendManualReminder('${it.id}', this)" ${isLocked ? 'disabled' : ''}>
                           ${isLocked ? '⏳ Ждите...' : '✉️ Напомнить'}
                         </button>
@@ -705,6 +913,100 @@
       if (currentTab === 'active') startButtonTimers();
     }
 
+    /* ОТРИСОВКА КЛИЕНТА */
+    async function renderClientList() {
+      if (currentUserRole !== 'client') return;
+      const { data, error } = await db.from('appointments').select('*').eq('email', currentUserEmail).order('date').order('time');
+      const el = document.getElementById('client-list');
+      
+      if (error || !data || !data.length) {
+        el.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted)">У вас пока нет заявок</div>`;
+        return;
+      }
+
+      el.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Дата / Время</th>
+              <th>Авто</th>
+              <th>Проблема</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(it => {
+              let status = 'Ожидает подтверждения';
+              if (it.is_archived) status = 'Завершено';
+              if (it.is_confirmed) status = 'Подтверждено';
+              
+              return `
+                <tr>
+                  <td data-label="Дата / Время">
+                    <b>${formatDateRu(it.date)}</b><br>
+                    <span style="color:var(--text-muted)">${it.time.slice(0,5)}</span>
+                  </td>
+                  <td data-label="Авто">${escapeHtml(it.car)}</td>
+                  <td data-label="Проблема">${escapeHtml(it.notes)}</td>
+                  <td data-label="Статус">
+                    <span class="badge ${it.is_confirmed ? 'badge-confirmed' : 'badge-pending'}">${status}</span>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    /* ФОРМА КЛИЕНТА (СОЗДАНИЕ ЗАЯВКИ) */
+    document.getElementById('client-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('c-submit-btn'); btn.textContent = 'Отправка...'; btn.disabled = true;
+
+      const item = {
+        name: document.getElementById('c-name').value.trim(),
+        email: document.getElementById('c-email').value.trim(),
+        car: document.getElementById('c-car').value.trim(),
+        address: document.getElementById('c-address').value.trim(),
+        notes: document.getElementById('c-notes').value.trim(),
+        date: document.getElementById('c-date').value,
+        time: document.getElementById('c-time').value,
+        user_id: (await db.auth.getUser()).data.user?.id,
+        reminder_12h_sent: false, reminder_3h_sent: false, is_confirmed: false, manual_reminder_sent: false, is_archived: false, review_sent: false, is_signed: false
+      };
+
+      try {
+        const { data, error } = await db.from('appointments').insert([item]).select();
+        if (error) throw error;
+        
+        // Письмо клиенту
+        const clientHtml = getEmailTemplate({ 
+          id: data[0].id, title: 'Заявка создана', color: '#10b981', name: item.name, car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
+          introText: 'Благодарим за доверие. Ваша заявка предварительно согласована. Письмо уже на вашей почте (если его нет, проверьте Спам). Ниже детали:'
+        });
+        await sendEmail({ to: item.email, subject: 'Заявка на диагностику создана', body: clientHtml });
+
+        // Письмо мастеру
+        const masterHtml = getEmailTemplate({
+          id: data[0].id, title: '🚗 Новый кейс от клиента', color: '#6366f1', name: 'Мастер', car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isMaster: true,
+          introText: `Поступила новая заявка от клиента <b>${escapeHtml(item.name)}</b> (${escapeHtml(item.email)}).<br><br><b>Описание проблемы:</b><br>${escapeHtml(item.notes)}`
+        });
+        await sendEmail({ to: MASTER_EMAIL, subject: '🚗 Новый кейс от клиента!', body: masterHtml });
+
+        // Показываем экран успеха
+        document.getElementById('client-panel').style.display = 'none';
+        document.getElementById('client-success-screen').style.display = 'flex';
+        
+        e.target.reset();
+        document.getElementById('c-email').value = currentUserEmail;
+        renderClientList();
+      } catch (err) {
+        showToast(`Ошибка: ${err.message}`, 'error');
+        btn.textContent = 'Отправить заявку'; btn.disabled = false;
+      }
+    });
+
+    /* СОТРУДНИК: АРХИВ, УДАЛЕНИЕ, ЭКСПОРТ */
     async function archiveItem(id) {
       if (confirm('Перенести запись в архив?')) {
         await db.from('appointments').update({ is_archived: true, archived_at: new Date().toISOString() }).eq('id', id);
@@ -727,7 +1029,6 @@
       }
     }
 
-    /* ЭКСПОРТ */
     async function exportToCSV() {
       const items = await loadAll();
       if (!items.length) { showToast('Нет данных', 'error'); return; }
@@ -743,7 +1044,6 @@
       showToast('Отчет скачан!');
     }
 
-    /* ОТПРАВКА АКТА НА ПОДПИСЬ (ТЕПЕРЬ БЕЗ ЛИШНЕЙ ИНФОРМАЦИИ) */
     async function sendSignRequest(id) {
       const { data: it, error } = await db.from('appointments').select('*').eq('id', id).single();
       if (error || !it) { showToast('Ошибка', 'error'); return; }
@@ -757,28 +1057,21 @@
       }
     }
 
-    /* ПОДПИСЬ (CANVAS) */
+    /* ПОДПИСЬ */
     let canvas, ctx, isDrawing = false, hasDrawn = false;
 
     function initCanvas() {
       canvas = document.getElementById('signature-canvas');
       ctx = canvas.getContext('2d');
-      
       const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * 2;
-      canvas.height = rect.height * 2;
+      canvas.width = rect.width * 2; canvas.height = rect.height * 2;
       ctx.scale(2, 2);
-      
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0f172a';
 
       canvas.addEventListener('mousedown', startDrawing);
       canvas.addEventListener('mousemove', draw);
       canvas.addEventListener('mouseup', stopDrawing);
       canvas.addEventListener('mouseout', stopDrawing);
-
       canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
       canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
       canvas.addEventListener('touchend', stopDrawing);
@@ -791,71 +1084,26 @@
       return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
-    function startDrawing(e) {
-      isDrawing = true;
-      ctx.beginPath();
-      const pos = getPos(e);
-      ctx.moveTo(pos.x, pos.y);
-    }
-
-    function draw(e) {
-      if (!isDrawing) return;
-      const pos = getPos(e);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-      hasDrawn = true;
-      checkSignStatus();
-    }
-
+    function startDrawing(e) { isDrawing = true; ctx.beginPath(); const pos = getPos(e); ctx.moveTo(pos.x, pos.y); }
+    function draw(e) { if (!isDrawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); hasDrawn = true; checkSignStatus(); }
     function stopDrawing() { isDrawing = false; }
     function handleTouchStart(e) { e.preventDefault(); startDrawing(e); }
     function handleTouchMove(e) { e.preventDefault(); draw(e); }
 
-    function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      hasDrawn = false;
-      checkSignStatus();
-    }
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); hasDrawn = false; checkSignStatus(); }
+    function checkSignStatus() { document.getElementById('btn-submit-sign').disabled = !(hasDrawn && document.getElementById('agree-check').checked); }
 
-    function checkSignStatus() {
-      const isAgreed = document.getElementById('agree-check').checked;
-      document.getElementById('btn-submit-sign').disabled = !(hasDrawn && isAgreed);
-    }
-
-    /* САМЫЙ НАДЕЖНЫЙ МЕТОД КОПИРОВАНИЯ (РАБОТАЕТ ВЕЗДЕ) */
+    /* КОПИРОВАНИЕ */
     function copyToClipboard(text) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
-      
-      // Делаем элемент невидимым, но не display:none (иначе не скопируется на iOS)
-      textArea.style.position = "fixed";
-      textArea.style.top = "0";
-      textArea.style.left = "0";
-      textArea.style.width = "2em";
-      textArea.style.height = "2em";
-      textArea.style.padding = "0";
-      textArea.style.border = "none";
-      textArea.style.outline = "none";
-      textArea.style.boxShadow = "none";
-      textArea.style.background = "transparent";
-      textArea.style.opacity = "0";
-      
+      textArea.style.position = "fixed"; textArea.style.left = "-9999px"; textArea.style.top = "0";
       document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      textArea.setSelectionRange(0, 99999); // Для мобильных устройств
-
+      textArea.focus(); textArea.select();
       try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          showToast('Номер скопирован!', 'success');
-        } else {
-          showToast('Не удалось скопировать. Зажмите и выделите вручную.', 'error');
-        }
-      } catch (err) {
-        showToast('Не удалось скопировать', 'error');
-      }
-      
+        if (document.execCommand('copy')) showToast('Номер скопирован!', 'success');
+        else showToast('Не удалось скопировать.', 'error');
+      } catch (err) { showToast('Не удалось скопировать', 'error'); }
       document.body.removeChild(textArea);
     }
 
@@ -865,13 +1113,7 @@
       btn.disabled = true; btn.textContent = 'Сохранение...';
 
       const dataURL = canvas.toDataURL('image/png');
-      
-      const { error } = await db.from('appointments').update({ 
-        signature: dataURL, 
-        is_signed: true,
-        is_archived: true, 
-        archived_at: new Date().toISOString()
-      }).eq('id', currentSignId);
+      const { error } = await db.from('appointments').update({ signature: dataURL, is_signed: true, is_archived: true, archived_at: new Date().toISOString() }).eq('id', currentSignId);
       
       if (!error) {
         const { data: appt } = await db.from('appointments').select('*').eq('id', currentSignId).single();
@@ -887,7 +1129,6 @@
               <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">К оплате:</p>
                 <p style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 15px;">${fPrice}</p>
-                
                 <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: left;">
                   <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Перевести на номер:</p>
                   <p style="font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 5px;">${PAYMENT_PHONE}</p>
@@ -902,43 +1143,30 @@
           </div>
         `;
 
-        const warrantyHtml = getWarrantyTemplate({ 
-          id: appt.id, name: appt.name, car: appt.car, price: appt.price || 'По договоренности', 
-          date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address 
-        });
+        const warrantyHtml = getWarrantyTemplate({ id: appt.id, name: appt.name, car: appt.car, price: appt.price || 'По договоренности', date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address });
         await sendEmail({ to: appt.email, subject: 'Сертификат гарантии (VAG FEATURE)', body: warrantyHtml });
 
-        const masterHtml = getEmailTemplate({ 
-          id: appt.id, title: 'Клиент подписал акт', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
-          introText: `Клиент <b>${escapeHtml(appt.name)}</b> успешно подписал акт выполненных работ. Запись автоматически перемещена в архив.`
-        });
+        const masterHtml = getEmailTemplate({ id: appt.id, title: 'Клиент подписал акт', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true, introText: `Клиент <b>${escapeHtml(appt.name)}</b> подписал акт. Кейс закрыт.` });
         await sendEmail({ to: MASTER_EMAIL, subject: `✅ Акт подписан: ${appt.name}`, body: masterHtml });
-
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("📝 Клиент подписал акт!", { body: `${appt.name}`, icon: LOGO_URL });
-        }
       } else {
-        alert("Ошибка сохранения подписи. Попробуйте еще раз.");
+        alert("Ошибка сохранения подписи.");
         btn.disabled = false; btn.textContent = 'Подписать и продолжить';
       }
     }
 
-    /* РУЧНОЕ НАПОМИНАНИЕ */
+    /* РУЧНОЕ И АВТО-НАПОМИНАНИЯ */
     async function sendManualReminder(id, btn) {
       btn.disabled = true; btn.innerHTML = '⏳ Отправка...';
-
       const { data: it, error } = await db.from('appointments').select('*').eq('id', id).single();
       if (error || !it) { showToast('Ошибка', 'error'); btn.disabled = false; btn.innerHTML = '✉️ Напомнить'; return; }
 
       const html = getEmailTemplate({
         id: it.id, title: 'Напоминание о визите', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
         isCancelBtn: true, isConfirmBtn: true, cancelLink: `${SITE_URL}?cancel=${it.id}`,
-        introText: 'Мастер напоминает о вашей записи на диагностику. Пожалуйста, подтвердите запись или сообщите нам, если обстоятельства изменились.'
+        introText: 'Мастер напоминает о вашей записи. Пожалуйста, подтвердите запись.'
       });
 
-      const ok = await sendEmail({ to: it.email, subject: 'Напоминание: подтвердите запись', body: html });
-      
-      if (ok) {
+      if (await sendEmail({ to: it.email, subject: 'Напоминание: подтвердите запись', body: html })) {
         await db.from('appointments').update({ manual_reminder_sent: true }).eq('id', it.id);
         showToast(`Письмо отправлено`);
         localStorage.setItem('reminder_lock_' + id, Date.now() + 300000);
@@ -958,28 +1186,24 @@
           const lockUntil = localStorage.getItem('reminder_lock_' + id);
           if (lockUntil && Date.now() < parseInt(lockUntil)) {
             const ms = parseInt(lockUntil) - Date.now();
-            const m = Math.floor(ms / 60000);
-            const s = Math.floor((ms % 60000) / 1000);
+            const m = Math.floor(ms / 60000); const s = Math.floor((ms % 60000) / 1000);
             btn.innerHTML = `⏳ ${m}:${s.toString().padStart(2, '0')}`;
             btn.disabled = true;
           } else if (btn.disabled && btn.innerHTML.includes('⏳')) {
-            btn.innerHTML = '✉️ Напомнить';
-            btn.disabled = false;
+            btn.innerHTML = '✉️ Напомнить'; btn.disabled = false;
           }
         });
       }, 1000);
     }
 
-    /* АВТО-НАПОМИНАНИЯ */
     async function checkReminders() {
-      if (currentTab === 'archive') return;
+      if (currentUserRole !== 'master' || currentTab === 'archive') return;
       const items = await loadAll();
       const now = new Date();
       let sentCount = 0;
 
       for (const it of items) {
         if (it.is_archived || it.is_signed) continue;
-
         const apptTime = new Date(it.date+'T'+it.time).getTime();
         const timeUntil = apptTime - now.getTime();
         const cancelLink = `${SITE_URL}?cancel=${it.id}`;
@@ -991,7 +1215,7 @@
                 id: it.id, title: 'Напоминание: завтра', color: '#6366f1', name: it.name, car: it.car, price: it.price, date: formatDateRu(it.date), time: it.time, address: it.address, isCancelBtn: true, isConfirmBtn: false, cancelLink,
                 introText: 'Напоминаем, что завтра у вас запланирована диагностика автомобиля.'
               });
-              if (await sendEmail({ to: it.email, subject: 'Напоминание: диагностика завтра', body: html })) {
+              if (await sendEmail({ to: it.email, subject: 'Напоминание: завтра', body: html })) {
                 await db.from('appointments').update({ reminder_12h_sent: true }).eq('id', it.id); sentCount++;
               }
             } else {
@@ -1024,10 +1248,7 @@
       if (rows && rows.length > 0) {
         const appt = rows[0];
         if (await db.from('appointments').delete().eq('id', cancelId).then(()=>true)) {
-          const masterHtml = getEmailTemplate({ 
-            id: appt.id, title: 'Отмена', color: '#ef4444', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
-            introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.`
-          });
+          const masterHtml = getEmailTemplate({ id: appt.id, title: 'Отмена', color: '#ef4444', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true, introText: `Клиент <b>${escapeHtml(appt.name)}</b> отменил запись.` });
           await sendEmail({ to: MASTER_EMAIL, subject: `❌ Отмена: ${appt.name}`, body: masterHtml });
         }
       }
@@ -1043,20 +1264,15 @@
         if ("Notification" in window && Notification.permission === "granted") {
           try { new Notification("✅ Клиент подтвердил запись!", { body: `${appt.name}`, icon: LOGO_URL }); } catch(e) {}
         }
-        const masterHtml = getEmailTemplate({ 
-          id: appt.id, title: 'Подтверждение', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true,
-          introText: `Отличные новости! Клиент <b>${escapeHtml(appt.name)}</b> подтвердил свою запись.`
-        });
+        const masterHtml = getEmailTemplate({ id: appt.id, title: 'Подтверждение', color: '#10b981', name: 'Мастер', car: appt.car, price: appt.price, date: formatDateRu(appt.date), time: appt.time.slice(0,5), address: appt.address, isMaster: true, introText: `Клиент <b>${escapeHtml(appt.name)}</b> подтвердил запись.` });
         await sendEmail({ to: MASTER_EMAIL, subject: `✅ Подтверждение: ${appt.name}`, body: masterHtml });
       }
     }
 
-    /* ЭКРАН ПОДПИСИ */
     async function handleSigning(signId) {
       document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
       document.getElementById('sign-screen').style.display = 'flex';
       currentSignId = signId;
-
       const { data: appt } = await db.from('appointments').select('*').eq('id', signId).single();
       
       if (appt) {
@@ -1065,103 +1281,58 @@
           <p><b>Исполнитель:</b> VAG FEATURE (Самозанятый Андрей Ш.)</p>
           <p><b>Заказчик:</b> ${escapeHtml(appt.name)}</p>
           <hr style="margin: 10px 0; border: none; border-top: 1px solid #475569;">
-          <p>Я, как Заказчик, подтверждаю, что работы по моему автомобилю выполнены в полном объеме и с надлежащим качеством. Претензий к внешнему виду и работоспособности автомобиля не имею.</p>
-          <p>Я ознакомлен(а) с условиями предоставления гарантии на выполненные работы сроком на <b>7 (семь) дней</b> с момента подписания настоящего акта.</p>
-          <p>В случае выявления недостатков в течение гарантийного срока, Исполнитель обязуется устранить их за свой счет в соответствии со <b>ст. 29 Закона РФ «О защите прав потребителей»</b> и <b>ст. 724 Гражданского кодекса РФ</b>.</p>
+          <p>Я, как Заказчик, подтверждаю, что работы выполнены в полном объеме и с надлежащим качеством. Претензий не имею.</p>
+          <p>Я ознакомлен(а) с условиями предоставления гарантии на 7 дней.</p>
         `;
         setTimeout(initCanvas, 100); 
       }
     }
 
-    /* ПРОСМОТР ПОДПИСАННОГО АКТА (ДЛЯ МАСТЕРА) */
     async function viewAct(id) {
       document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
       document.getElementById('view-act-screen').style.display = 'flex';
-      
       const { data: appt } = await db.from('appointments').select('*').eq('id', id).single();
       
       if (appt) {
         const fPrice = appt.price ? formatPrice(appt.price) : 'По договоренности';
         document.getElementById('view-act-content').innerHTML = `
-          <div class="warranty-header" style="background: #6366f1;">
-            <h1>АКТ ВЫПОЛНЕННЫХ РАБОТ</h1>
-            <p style="color: #c7d2fe; margin: 8px 0 0 0; font-size: 16px;">Подписан клиентом</p>
-          </div>
-          
+          <div class="warranty-header" style="background: #6366f1;"><h1>АКТ ВЫПОЛНЕННЫХ РАБОТ</h1></div>
           <div class="warranty-body" style="color: #334155;">
             <p><b>Исполнитель:</b> VAG FEATURE (Самозанятый Андрей Ш.)</p>
             <p><b>Заказчик:</b> ${escapeHtml(appt.name)}</p>
             <p><b>Автомобиль:</b> ${escapeHtml(appt.car)}</p>
-            <p><b>Дата и время:</b> ${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}</p>
-            
-            <div style="background: #f8fafc; border-radius: 12px; padding: 15px; margin: 20px 0; border: 1px solid #e2e8f0;">
-              <p style="margin: 0; font-size: 16px;"><b>Стоимость работ:</b> <span style="color: #10b981; font-weight: bold; font-size: 20px;">${fPrice}</span></p>
-            </div>
-
-            <p style="font-size: 14px;">Я, как Заказчик, подтверждаю, что работы выполнены в полном объеме и с надлежащим качеством. Претензий к внешнему виду и работоспособности автомобиля не имею. С условиями гарантии на 7 дней ознакомлен.</p>
-
+            <p><b>Дата:</b> ${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}</p>
+            <div style="background: #f8fafc; padding: 15px; margin: 20px 0;"><b>Стоимость:</b> <span style="color: #10b981; font-weight: bold; font-size: 20px;">${fPrice}</span></div>
             <div style="margin-top: 30px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
               <p style="font-size: 14px; color: #64748b; margin-bottom: 10px;">Подпись Заказчика:</p>
-              ${appt.signature ? `<img src="${appt.signature}" style="max-height: 80px;" alt="Подпись клиента">` : '<p>Нет подписи</p>'}
+              ${appt.signature ? `<img src="${appt.signature}" style="max-height: 80px;">` : '<p>Нет подписи</p>'}
             </div>
-          </div>
-
-          <div class="warranty-footer">
-            © 2026 VAG FEATURE. Все права защищены.<br>
-            <a href="tel:+79774770587" style="color: #10b981; text-decoration: none; font-weight: bold; margin-top: 5px; display: inline-block;">+7 (977) 477-05-87 (Андрей)</a>
           </div>
         `;
       }
     }
 
-    /* СЕРТИФИКАТ ДЛЯ КЛИЕНТА */
     async function handleWarranty(id) {
       document.querySelector('.app').style.display = 'none'; document.querySelector('.garland').style.display = 'none';
       document.getElementById('warranty-screen').style.display = 'flex';
-      
       const { data: appt } = await db.from('appointments').select('*').eq('id', id).single();
       
       if (appt) {
         const fPrice = appt.price ? formatPrice(appt.price) : 'По договоренности';
         document.getElementById('warranty-content').innerHTML = `
-          <div class="warranty-header">
-            <h1>СЕРТИФИКАТ ГАРАНТИИ</h1>
-            <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 16px;">Действует 7 дней с момента подписания</p>
-          </div>
-          
-          <div class="warranty-body">
-            <p style="font-size: 18px; margin-top: 0; font-weight: bold; color: #334155;">Уважаемый(ая) ${escapeHtml(appt.name)},</p>
-            <p style="font-size: 16px; color: #334155;">Благодарим вас за выбор <b>VAG FEATURE</b>. Настоящий сертификат подтверждает, что работы по вашему автомобилю выполнены качественно и в полном объеме.</p>
-            
-            <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0; color: #334155;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr><td style="padding: 8px 0; color: #64748b;">Автомобиль:</td><td style="padding: 8px 0; font-weight: bold;">${escapeHtml(appt.car)}</td></tr>
-                <tr><td style="padding: 8px 0; color: #64748b;">Дата визита:</td><td style="padding: 8px 0; font-weight: bold;">${formatDateRu(appt.date)} в ${appt.time.slice(0,5)}</td></tr>
-                <tr><td style="padding: 8px 0; color: #64748b;">Сумма работ:</td><td style="padding: 8px 0; font-weight: bold; color: #10b981; font-size: 18px;">${fPrice}</td></tr>
-                <tr><td style="padding: 8px 0; color: #64748b;">Адрес:</td><td style="padding: 8px 0; font-weight: bold;">${escapeHtml(appt.address) || 'Выездная диагностика'}</td></tr>
-              </table>
-            </div>
-
-            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; color: #92400e;">
-              <p style="margin: 0; font-size: 14px;">
-                <b>Условия гарантии:</b> Если в течение 7 дней с момента подписания акта вы обнаружите недостатки выполненных работ, мы обязуемся устранить их бесплатно.
-              </p>
-            </div>
-            
-            <p style="font-size: 14px; color: #64748b; margin-top: 30px; text-align: center;">
-              <i>Сделайте скриншот этой страницы или сохраните письмо как подтверждение гарантии на 7 дней.</i>
-            </p>
-          </div>
-
-          <div class="warranty-footer">
-            © 2026 VAG FEATURE. Все права защищены.<br>
-            <a href="tel:+79774770587" style="color: #10b981; text-decoration: none; font-weight: bold; margin-top: 5px; display: inline-block;">+7 (977) 477-05-87 (Андрей)</a>
+          <div class="warranty-header"><h1>СЕРТИФИКАТ ГАРАНТИИ</h1><p style="color: #d1fae5;">7 дней</p></div>
+          <div class="warranty-body" style="color: #334155;">
+            <p><b>Владелец:</b> ${escapeHtml(appt.name)}</p>
+            <p><b>Авто:</b> ${escapeHtml(appt.car)}</p>
+            <p><b>Сумма:</b> <span style="color: #10b981; font-weight: bold;">${fPrice}</span></p>
+            <p style="margin-top: 20px; font-size: 14px;">Гарантия действует 7 дней с момента подписания акта.</p>
+            <p style="font-size: 14px; color: #64748b; margin-top: 30px; text-align: center;"><i>Сделайте скриншот этого письма или сохраните его как подтверждение.</i></p>
           </div>
         `;
       }
     }
 
-    /* ДОБАВЛЕНИЕ */
+    /* ФОРМА СОТРУДНИКА (РУЧНОЕ ДОБАВЛЕНИЕ) */
     document.getElementById('form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submit-btn'); btn.textContent = 'Сохранение...'; btn.disabled = true;
@@ -1185,7 +1356,7 @@
         
         const html = getEmailTemplate({ 
           id: data[0].id, title: 'Запись создана', color: '#10b981', name: item.name, car: item.car, price: item.price, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
-          introText: 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже представлена подробная информация о вашем визите:'
+          introText: 'Благодарим за доверие. Ваша запись предварительно согласована. Ниже детали:'
         });
         await sendEmail({ to: item.email, subject: 'Запись на диагностику создана', body: html });
 
@@ -1223,6 +1394,8 @@
       
       document.getElementById('date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
       document.getElementById('time').value = '10:00';
+      document.getElementById('c-date').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      document.getElementById('c-time').value = '10:00';
 
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('cancel')) { await handleCancellation(urlParams.get('cancel')); } 
@@ -1230,22 +1403,21 @@
       else if (urlParams.get('sign')) { await handleSigning(urlParams.get('sign')); }
       else if (urlParams.get('warranty')) { await handleWarranty(urlParams.get('warranty')); }
       else {
-        addLog('🚀 Система запущена', 'ok');
-        await cleanupArchive();
-        await renderList();
-        
-        db.channel('realtime-appointments')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
-            addLog('🔄 Realtime обновление', 'ok'); renderList(); 
-          }).subscribe();
-
-        setInterval(() => { renderList(); }, 15000);
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') { renderList(); checkReminders(); }
-        });
-
-        checkReminders(); 
-        setInterval(() => checkReminders(), 60000);
+        // Проверяем сессию мастера
+        if (localStorage.getItem('master_session') === 'true') {
+          currentUserRole = 'master';
+          showMasterPanel();
+        } else {
+          // Проверяем сессию клиента
+          const { data: { session } } = await db.auth.getSession();
+          if (session) {
+            currentUserRole = 'client';
+            currentUserEmail = session.user.email;
+            showClientPanel();
+          } else {
+            document.getElementById('login-screen').style.display = 'flex';
+          }
+        }
       }
     })();
   </script>
