@@ -14,7 +14,7 @@
   
   <style>
     :root {
-      --bg: #0b1120; --card-bg: rgba(30, 41, 59, 0.85);
+      --bg: #0b1120; --card-bg: rgba(30, 41, 59, 0.95);
       --accent: #6366f1; --accent-glow: rgba(99, 102, 241, 0.4); --accent-hover: #4f46e5;
       --ok: #10b981; --ok-bg: rgba(16, 185, 129, 0.1);
       --warn: #f59e0b; --warn-bg: rgba(245, 158, 11, 0.1);
@@ -79,7 +79,7 @@
     .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
     @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.5rem; } }
 
-    .card { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
     .card h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 
     label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin: 14px 0 6px; }
@@ -145,7 +145,7 @@
     }
 
     #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; }
-    .toast { background: var(--card-bg); backdrop-filter: blur(12px); padding: 14px 20px; border-radius: 10px; border: 1px solid var(--border); font-weight: 500; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
+    .toast { background: var(--card-bg); padding: 14px 20px; border-radius: 10px; border: 1px solid var(--border); font-weight: 500; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
     .toast.success { border-left: 4px solid var(--ok); }
     .toast.error { border-left: 4px solid var(--err); }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -164,11 +164,11 @@
 
     body.rgb-mode .card, body.rgb-mode .log-wrapper { animation: rgbGlow 4s linear infinite; }
     @keyframes rgbGlow {
-      0% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
-      25% { border-color: #00ffd5; box-shadow: 0 0 15px rgba(0,255,213,0.5), inset 0 0 10px rgba(0,255,213,0.2); }
-      50% { border-color: #7a00ff; box-shadow: 0 0 15px rgba(122,0,255,0.5), inset 0 0 10px rgba(122,0,255,0.2); }
-      75% { border-color: #ff7300; box-shadow: 0 0 15px rgba(255,115,0,0.5), inset 0 0 10px rgba(255,115,0,0.2); }
-      100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5), inset 0 0 10px rgba(255,0,0,0.2); }
+      0% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5); }
+      25% { border-color: #00ffd5; box-shadow: 0 0 15px rgba(0,255,213,0.5); }
+      50% { border-color: #7a00ff; box-shadow: 0 0 15px rgba(122,0,255,0.5); }
+      75% { border-color: #ff7300; box-shadow: 0 0 15px rgba(255,115,0,0.5); }
+      100% { border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5); }
     }
 
     /* ЭКРАНЫ */
@@ -483,6 +483,7 @@
     let currentSignId = null;
     let currentUserRole = null;
     let currentUserEmail = null;
+    let realtimeChannel = null;
 
     /* ЛОГИ */
     let logLines = [];
@@ -532,7 +533,6 @@
       btn.disabled = true; 
       btn.textContent = 'Загрузка...';
 
-      // Защита от бесконечного зависания (таймаут 10 секунд)
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Превышено время ожидания. Проверьте интернет.')), 10000)
       );
@@ -599,6 +599,11 @@
       document.getElementById('client-password').value = '';
       document.getElementById('master-login').value = '';
       document.getElementById('master-password').value = '';
+      
+      if (realtimeChannel) {
+        db.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
     }
 
     function closeClientSuccessScreen() {
@@ -618,13 +623,17 @@
       cleanupArchive();
       renderList();
       
-      db.channel('realtime-appointments').unsubscribe();
-      db.channel('realtime-appointments')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => { 
-          addLog('🔄 Realtime обновление', 'ok'); renderList(); 
+      if (realtimeChannel) db.removeChannel(realtimeChannel);
+      realtimeChannel = db.channel('realtime-appointments')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => { 
+          addLog('🔄 Обновление в реальном времени', 'ok'); 
+          renderList(); 
         }).subscribe();
 
-      setInterval(() => { renderList(); checkReminders(); }, 60000);
+      // Проверяем напоминания раз в минуту, но только если сайт активен
+      setInterval(() => { 
+        if(document.visibilityState === 'visible') checkReminders(); 
+      }, 60000);
     }
 
     function showClientPanel() {
@@ -1253,16 +1262,25 @@
 
     async function checkReminders() {
       if (currentUserRole !== 'master' || currentTab === 'archive') return;
-      const items = await loadAll();
+      
+      // ОПТИМИЗАЦИЯ: Получаем только те записи, где напоминания еще НЕ отправлены
+      const { data: items } = await db.from('appointments')
+        .select('*')
+        .eq('is_archived', false)
+        .eq('is_signed', false)
+        .or('reminder_12h_sent.eq.false,reminder_3h_sent.eq.false');
+        
+      if (!items || !items.length) return;
+      
       const now = new Date();
       let sentCount = 0;
 
       for (const it of items) {
-        if (it.is_archived || it.is_signed) continue;
         const apptTime = new Date(it.date+'T'+it.time).getTime();
         const timeUntil = apptTime - now.getTime();
         const cancelLink = `${SITE_URL}?cancel=${it.id}`;
 
+        // 12 часов
         if (!it.reminder_12h_sent && it.date !== now.toISOString().slice(0,10)) {
           if (timeUntil <= 12 * 60 * 60 * 1000) {
             if (timeUntil > 11 * 60 * 60 * 1000) {
@@ -1279,6 +1297,7 @@
           }
         }
 
+        // 3 часа
         if (!it.reminder_3h_sent) {
           if (timeUntil <= 3 * 60 * 60 * 1000) {
             const html = getEmailTemplate({ 
@@ -1291,8 +1310,10 @@
           }
         }
       }
-      if (sentCount > 0) addLog(`✅ Авто-напоминаний: ${sentCount}`, 'ok');
-      if (sentCount > 0) renderList();
+      if (sentCount > 0) {
+        addLog(`✅ Авто-напоминаний: ${sentCount}`, 'ok');
+        renderList();
+      }
     }
 
     /* ОТМЕНА */
@@ -1447,12 +1468,18 @@
           currentUserRole = 'master';
           showMasterPanel();
         } else {
-          const { data: { session } } = await db.auth.getSession();
-          if (session) {
-            currentUserRole = 'client';
-            currentUserEmail = session.user.email;
-            showClientPanel();
-          } else {
+          // Защита от зависания при проверке сессии
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve({ data: { session: null } }), 3000));
+          try {
+            const { data: { session } } = await Promise.race([db.auth.getSession(), timeoutPromise]);
+            if (session) {
+              currentUserRole = 'client';
+              currentUserEmail = session.user.email;
+              showClientPanel();
+            } else {
+              document.getElementById('login-screen').style.display = 'flex';
+            }
+          } catch (e) {
             document.getElementById('login-screen').style.display = 'flex';
           }
         }
