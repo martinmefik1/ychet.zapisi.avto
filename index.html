@@ -106,6 +106,8 @@
     .btn-sign:hover { background: var(--ok); color: #fff; }
     .btn-export { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); font-size: 0.8rem; padding: 8px 12px; border-radius: 8px; }
     .btn-export:hover { background: var(--ok); color: #fff; }
+    .btn-price { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
+    .btn-price:hover { background: var(--warn); color: #fff; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
@@ -129,6 +131,10 @@
     .badge-waiting-confirm { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
     .badge-signed { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; }
     .badge-archived { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid #94a3b8; }
+    
+    /* Бейджи источника заявки */
+    .badge-source-client { background: rgba(255, 255, 255, 0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.2); font-size: 0.65rem; margin-left: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
+    .badge-source-master { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; font-size: 0.65rem; margin-left: 8px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
 
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
@@ -241,7 +247,6 @@
         <div class="role-tab" id="tab-master" onclick="switchLoginRole('master')">Я Сотрудник</div>
       </div>
 
-      <!-- Форма клиента (Email/Pass) -->
       <div id="client-login-form">
         <label for="client-email">Email</label>
         <input id="client-email" type="email" placeholder="client@mail.ru">
@@ -252,7 +257,6 @@
         <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;" id="client-auth-hint">Если у вас нет аккаунта, он создастся автоматически.</p>
       </div>
 
-      <!-- Форма сотрудника (Логин/Пароль) -->
       <div id="master-login-form" style="display: none;">
         <label for="master-login">Логин</label>
         <input id="master-login" placeholder="VAG.COM">
@@ -273,7 +277,7 @@
         Если его нет во «Входящих», пожалуйста, проверьте папку <b>«Спам»</b>.<br><br>
         <span style="font-size: 0.9rem; opacity: 0.7;">Мастер свяжется с вами для подтверждения.</span>
       </div>
-      <button onclick="logoutUser()" style="margin-top: 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px;">Вернуться в кабинет</button>
+      <button onclick="closeClientSuccessScreen()" style="margin-top: 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px;">Вернуться в кабинет</button>
     </div>
   </div>
 
@@ -384,6 +388,9 @@
             <label for="name">Имя клиента</label>
             <input id="name" required placeholder="Иван Петров">
             
+            <label for="phone">Телефон клиента</label>
+            <input id="phone" required placeholder="+7 999 123-45-67">
+            
             <label for="email">Email</label>
             <input id="email" type="email" required placeholder="client@mail.ru">
             
@@ -435,6 +442,9 @@
           <label for="c-name">Ваше имя</label>
           <input id="c-name" required placeholder="Иван Петров">
           
+          <label for="c-phone">Ваш телефон</label>
+          <input id="c-phone" required placeholder="+7 999 123-45-67">
+          
           <label for="c-email">Ваш Email</label>
           <input id="c-email" type="email" required readonly style="opacity: 0.7;">
           
@@ -481,7 +491,7 @@
 
     let currentTab = 'active';
     let currentSignId = null;
-    let currentUserRole = null; // 'master' или 'client'
+    let currentUserRole = null;
     let currentUserEmail = null;
 
     /* ЛОГИ */
@@ -528,10 +538,8 @@
       
       btn.disabled = true; btn.textContent = 'Загрузка...';
 
-      // Пытаемся войти
       let { data, error } = await db.auth.signInWithPassword({ email, password });
 
-      // Если не получилось, пробуем зарегистрироваться
       if (error && error.message.includes('Invalid login credentials')) {
         const { data: signUpData, error: signUpError } = await db.auth.signUp({ email, password });
         if (signUpError) {
@@ -582,6 +590,11 @@
       document.getElementById('master-password').value = '';
     }
 
+    function closeClientSuccessScreen() {
+      document.getElementById('client-success-screen').style.display = 'none';
+      showClientPanel(); // Возвращаем в кабинет без потери сессии
+    }
+
     /* ОТРИСОВКА ПАНЕЛЕЙ */
     function showMasterPanel() {
       document.getElementById('login-screen').style.display = 'none';
@@ -605,6 +618,7 @@
 
     function showClientPanel() {
       document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('client-success-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'block';
       document.getElementById('master-panel').style.display = 'none';
       document.getElementById('client-panel').style.display = 'block';
@@ -718,7 +732,6 @@
       </div>`;
     }
 
-    /* МИНИМАЛИСТИЧНЫЙ ШАБЛОН ДЛЯ ЗАПРОСА ПОДПИСИ */
     function getSignRequestTemplate({ id, name }) {
       return `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px; line-height: 1.6;">
@@ -790,7 +803,7 @@
       </div>`;
     }
 
-    /* БАЗА (СОТРУДНИК) */
+    /* БАЗА */
     async function loadAll() {
       const { data, error } = await db.from('appointments').select('*').eq('is_archived', currentTab === 'archive').order('date').order('time');
       if (error) { addLog(`❌ Ошибка БД: ${error.message}`, 'err'); return []; }
@@ -864,14 +877,20 @@
                 confirmBadge = '<span class="badge badge-waiting-confirm">⏳ Ожидает подтв.</span>';
               }
 
+              // БЕЙДЖ ИСТОЧНИКА
+              const sourceBadge = it.user_id 
+                ? '<span class="badge-source-client">👤 Клиент</span>'
+                : '<span class="badge-source-master">👨‍🔧 Мастер</span>';
+
               const lockUntil = localStorage.getItem('reminder_lock_' + it.id);
               const isLocked = lockUntil && Date.now() < parseInt(lockUntil);
 
               return `
                 <tr>
                   <td data-label="Клиент / Авто">
-                    <div class="cell-name">${escapeHtml(it.name)}</div>
+                    <div class="cell-name">${escapeHtml(it.name)} ${sourceBadge}</div>
                     <div class="cell-sub" style="color:var(--accent);">🚗 ${escapeHtml(it.car)}</div>
+                    ${it.phone ? `<div class="cell-sub">📞 ${escapeHtml(it.phone)}</div>` : ''}
                     ${it.price ? `<div class="cell-sub" style="color:#10b981;">💰 ${formatPrice(it.price)}</div>` : ''}
                     <div class="cell-sub">✉️ ${escapeHtml(it.email)}</div>
                   </td>
@@ -892,6 +911,7 @@
                   <td data-label="Действия">
                     <div class="actions">
                       ${currentTab === 'active' ? `
+                        ${!it.price ? `<button class="btn-icon btn-price" onclick="setPrice('${it.id}')" title="Назначить цену">💰 Цена</button>` : ''}
                         ${!it.is_signed ? `<button class="btn-icon btn-sign" onclick="sendSignRequest('${it.id}')" title="Отправить акт">📝 Акт</button>` : ''}
                         <button class="btn-icon btn-send" id="btn-remind-${it.id}" onclick="sendManualReminder('${it.id}', this)" ${isLocked ? 'disabled' : ''}>
                           ${isLocked ? '⏳ Ждите...' : '✉️ Напомнить'}
@@ -911,6 +931,32 @@
         </table>`;
         
       if (currentTab === 'active') startButtonTimers();
+    }
+
+    /* НАЗНАЧЕНИЕ ЦЕНЫ */
+    async function setPrice(id) {
+      const priceInput = prompt('Введите стоимость работ (например: 5000):');
+      if (!priceInput) return;
+      
+      const fPrice = priceInput.replace(/[^\d.]/g, '');
+      if (!fPrice) { showToast('Неверный формат цены', 'error'); return; }
+
+      const { data: it, error: fetchErr } = await db.from('appointments').select('*').eq('id', id).single();
+      if (fetchErr || !it) { showToast('Ошибка', 'error'); return; }
+
+      const { error } = await db.from('appointments').update({ price: fPrice, is_confirmed: true }).eq('id', id);
+      if (error) { showToast('Ошибка сохранения цены', 'error'); return; }
+
+      // Письмо клиенту
+      const html = getEmailTemplate({
+        id: it.id, title: 'Цена согласована', color: '#10b981', name: it.name, car: it.car, price: fPrice, date: formatDateRu(it.date), time: it.time.slice(0,5), address: it.address,
+        isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${it.id}`,
+        introText: `Мастер подтвердил вашу запись и объявил стоимость работ: <b style="font-size:18px; color:#10b981;">${formatPrice(fPrice)}</b>. Ждем вас в назначенное время!`
+      });
+      await sendEmail({ to: it.email, subject: '✅ Запись подтверждена и цена объявлена', body: html });
+      
+      showToast('Цена объявлена, письмо отправлено клиенту!');
+      renderList();
     }
 
     /* ОТРИСОВКА КЛИЕНТА */
@@ -936,9 +982,11 @@
           </thead>
           <tbody>
             ${data.map(it => {
-              let status = 'Ожидает подтверждения';
-              if (it.is_archived) status = 'Завершено';
-              if (it.is_confirmed) status = 'Подтверждено';
+              let status = 'Ожидает';
+              let badgeClass = 'badge-pending';
+              if (it.is_archived) { status = 'Завершено'; badgeClass = 'badge-archived'; }
+              else if (it.price) { status = 'Подтверждено'; badgeClass = 'badge-confirmed'; }
+              else if (it.is_confirmed) { status = 'Подтверждено'; badgeClass = 'badge-confirmed'; }
               
               return `
                 <tr>
@@ -949,7 +997,8 @@
                   <td data-label="Авто">${escapeHtml(it.car)}</td>
                   <td data-label="Проблема">${escapeHtml(it.notes)}</td>
                   <td data-label="Статус">
-                    <span class="badge ${it.is_confirmed ? 'badge-confirmed' : 'badge-pending'}">${status}</span>
+                    <span class="badge ${badgeClass}">${status}</span>
+                    ${it.price ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">Цена: ${formatPrice(it.price)}</div>` : ''}
                   </td>
                 </tr>
               `;
@@ -958,13 +1007,14 @@
         </table>`;
     }
 
-    /* ФОРМА КЛИЕНТА (СОЗДАНИЕ ЗАЯВКИ) */
+    /* ФОРМА КЛИЕНТА */
     document.getElementById('client-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('c-submit-btn'); btn.textContent = 'Отправка...'; btn.disabled = true;
 
       const item = {
         name: document.getElementById('c-name').value.trim(),
+        phone: document.getElementById('c-phone').value.trim(),
         email: document.getElementById('c-email').value.trim(),
         car: document.getElementById('c-car').value.trim(),
         address: document.getElementById('c-address').value.trim(),
@@ -979,21 +1029,18 @@
         const { data, error } = await db.from('appointments').insert([item]).select();
         if (error) throw error;
         
-        // Письмо клиенту
         const clientHtml = getEmailTemplate({ 
           id: data[0].id, title: 'Заявка создана', color: '#10b981', name: item.name, car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isCancelBtn: true, isConfirmBtn: false, cancelLink: `${SITE_URL}?cancel=${data[0].id}`,
           introText: 'Благодарим за доверие. Ваша заявка предварительно согласована. Письмо уже на вашей почте (если его нет, проверьте Спам). Ниже детали:'
         });
         await sendEmail({ to: item.email, subject: 'Заявка на диагностику создана', body: clientHtml });
 
-        // Письмо мастеру
         const masterHtml = getEmailTemplate({
           id: data[0].id, title: '🚗 Новый кейс от клиента', color: '#6366f1', name: 'Мастер', car: item.car, price: null, date: formatDateRu(item.date), time: item.time, address: item.address, isMaster: true,
-          introText: `Поступила новая заявка от клиента <b>${escapeHtml(item.name)}</b> (${escapeHtml(item.email)}).<br><br><b>Описание проблемы:</b><br>${escapeHtml(item.notes)}`
+          introText: `Поступила новая заявка от клиента <b>${escapeHtml(item.name)}</b>.<br>Телефон: ${escapeHtml(item.phone)}<br>Email: ${escapeHtml(item.email)}<br><br><b>Описание проблемы:</b><br>${escapeHtml(item.notes)}`
         });
         await sendEmail({ to: MASTER_EMAIL, subject: '🚗 Новый кейс от клиента!', body: masterHtml });
 
-        // Показываем экран успеха
         document.getElementById('client-panel').style.display = 'none';
         document.getElementById('client-success-screen').style.display = 'flex';
         
@@ -1032,9 +1079,9 @@
     async function exportToCSV() {
       const items = await loadAll();
       if (!items.length) { showToast('Нет данных', 'error'); return; }
-      let csv = 'Дата;Время;Клиент;Email;Авто;Сумма;Адрес;Заметки;Подтверждено;Подписано\n';
+      let csv = 'Дата;Время;Клиент;Телефон;Email;Авто;Сумма;Адрес;Заметки;Подтверждено;Подписано\n';
       items.forEach(it => {
-        csv += `${formatDateRu(it.date)};${it.time};${it.name};${it.email};${it.car};${it.price || '-'};${it.address || '-'};${it.notes || '-'};${it.is_confirmed ? 'Да' : 'Нет'};${it.is_signed ? 'Да' : 'Нет'}\n`;
+        csv += `${formatDateRu(it.date)};${it.time};${it.name};${it.phone || '-'};${it.email};${it.car};${it.price || '-'};${it.address || '-'};${it.notes || '-'};${it.is_confirmed ? 'Да' : 'Нет'};${it.is_signed ? 'Да' : 'Нет'}\n`;
       });
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
@@ -1339,6 +1386,7 @@
 
       const item = {
         name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
         email: document.getElementById('email').value.trim(),
         car: document.getElementById('car').value.trim(),
         price: document.getElementById('price').value.trim(),
@@ -1403,12 +1451,10 @@
       else if (urlParams.get('sign')) { await handleSigning(urlParams.get('sign')); }
       else if (urlParams.get('warranty')) { await handleWarranty(urlParams.get('warranty')); }
       else {
-        // Проверяем сессию мастера
         if (localStorage.getItem('master_session') === 'true') {
           currentUserRole = 'master';
           showMasterPanel();
         } else {
-          // Проверяем сессию клиента
           const { data: { session } } = await db.auth.getSession();
           if (session) {
             currentUserRole = 'client';
